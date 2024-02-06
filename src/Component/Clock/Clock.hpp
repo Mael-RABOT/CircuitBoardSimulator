@@ -1,0 +1,23 @@
+#pragma once
+
+#include "../AComponent.hpp"
+
+namespace nts {
+    class Clock : public AComponent {
+    public:
+        Clock(Tristate state) : AComponent(1) {
+            this->getPin(1).setState(state);
+        };
+
+        void simulate(std::size_t tick) {
+            this->_tick = tick;
+            this->getPin(1).setState((tick % 2 == 0) ? Tristate::False : Tristate::True);
+        };
+
+        nts::Tristate compute(std::size_t pin) {
+            if (pin != 1)
+                throw nts::Error("Pin not found");
+            return this->getPin(pin).getState();
+        };
+    };
+}

@@ -1,8 +1,11 @@
-//
-// Created by mrabot on 06/02/24.
-//
+#pragma once
 
-#ifndef B_OOP_400_LYN_4_1_TEKSPICE_MAEL_RABOT_AND_HPP
-#define B_OOP_400_LYN_4_1_TEKSPICE_MAEL_RABOT_AND_HPP
+#include "../AComponent.hpp"
 
-#endif //B_OOP_400_LYN_4_1_TEKSPICE_MAEL_RABOT_AND_HPP
+namespace nts {
+    class And : public AComponent {
+        public:
+            And() : AComponent(3) {};
+            void simulate(std::size_t tick);
+    };
+}
