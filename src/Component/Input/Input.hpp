@@ -19,7 +19,7 @@ namespace nts {
 
             nts::Tristate compute(std::size_t pin) {
                 if (pin != 1)
-                    throw nts::Error("Pin not found");
+                    throw nts::CustomError("Pin not found");
                 return this->getPin(pin).getState();
             };
     };

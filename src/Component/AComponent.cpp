@@ -16,7 +16,7 @@ namespace nts {
 
     nts::Tristate AComponent::compute(std::size_t pin) {
         if (_pins.find(pin) == _pins.end()) {
-            throw nts::Error("Pin not found");
+            throw nts::CustomError("Pin not found");
         }
         return _pins[pin].updatePin(_tick);
     }
@@ -27,7 +27,7 @@ namespace nts {
 
     Pin &AComponent::getPin(std::size_t pin) {
         if (_pins.find(pin) == _pins.end()) {
-            throw nts::Error("Pin not found");
+            throw nts::CustomError("Pin not found");
         }
         return _pins[pin];
     }
