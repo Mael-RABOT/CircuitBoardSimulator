@@ -16,7 +16,7 @@ namespace nts {
     }
 
     void Pin::setLink(nts::Pin &other) {
-        _links.push_back(other);
+        _links.push_back(std::ref(other));
     }
 
     Tristate Pin::updatePin(std::size_t tick) {
@@ -29,15 +29,9 @@ namespace nts {
             std::cout << "> No links" << std::endl;
             return _state;
         }
-        for (auto &link : _links) {
-            std::cout << "> Link: " << link.getState() << std::endl;
-            _state = std::max(_state, link.getState());
-        }
         std::cout << "> State: " << _state << std::endl;
+        for (auto &link : _links)
+            _state = std::max(_state, link.get().getState());
         return _state;
-    }
-
-    std::vector<Pin> Pin::getLinks() {
-        return _links;
     }
 }

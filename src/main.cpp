@@ -25,7 +25,7 @@ int main() {
         circuit.getComponent("and1")->simulate(1);
         std::cout << "---- simulate output ----" << std::endl;
         std::cout << "and output: " << circuit.getComponent("and1")->getPin(3).getState() << std::endl;
-        circuit.getOutput("o1")->setLink(1, *circuit.getComponent("and1"), 3);
+        //circuit.getOutput("o1")->setLink(1, *circuit.getComponent("and1"), 3);
         circuit.getOutput("o1")->simulate(1);
 
         std::cout << "and output: " << circuit.getComponent("and1")->getPin(3).getState() << std::endl;

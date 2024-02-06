@@ -2,6 +2,7 @@
 
 #include <map>
 #include <vector>
+#include <functional>
 
 #include "../Component/IComponent.hpp"
 
@@ -11,7 +12,7 @@ namespace nts {
             std::size_t _id;
             std::size_t _tick;
             nts::Tristate _state;
-            std::vector<Pin &> _links;
+            std::vector<std::reference_wrapper<Pin>> _links;
 
         public:
             Pin();
@@ -21,6 +22,5 @@ namespace nts {
             void setState(nts::Tristate state);
             void setLink(nts::Pin &other);
             Tristate updatePin(std::size_t tick);
-            std::vector<Pin> getLinks();
     };
 }
