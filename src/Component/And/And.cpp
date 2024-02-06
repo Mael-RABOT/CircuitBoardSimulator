@@ -2,10 +2,10 @@
 
 namespace nts {
     void And::simulate(std::size_t tick) {
-        _tick = tick;
         for (auto &pin : _pins) {
             pin.second.updatePin(_tick);
         }
+        _tick = tick;
         if (_pins[1].getState() == Tristate::Undefined || _pins[2].getState() == Tristate::Undefined) {
             _pins[3].setState(Tristate::Undefined);
             return;
