@@ -5,7 +5,6 @@ int main() {
         /* Init */
         nts::Manager circuit;
         circuit.factory("clock", "i1", nts::Tristate::True);
-        //todo: destruct
         circuit.factory("input", "i2", nts::Tristate::True);
         circuit.factory("output", "o1");
         circuit.factory("and", "and1");

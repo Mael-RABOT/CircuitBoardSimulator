@@ -3,6 +3,18 @@
 namespace nts {
     Manager::Manager() : _lastTick(0) {}
 
+    Manager::~Manager() {
+        for (auto &input: _inputs) {
+            delete input.second;
+        }
+        for (auto &output: _outputs) {
+            delete output.second;
+        }
+        for (auto &component: _components) {
+            delete component.second;
+        }
+    }
+
     void Manager::addComponent(const std::string &label, IComponent *component, ComponentType type) {
         switch (type) {
             case ComponentType::INPUT:

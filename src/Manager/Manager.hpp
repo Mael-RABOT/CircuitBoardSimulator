@@ -20,6 +20,7 @@ namespace nts {
 
         public:
             Manager();
+            ~Manager();
             void addComponent(const std::string &label, IComponent *component, ComponentType type);
 
             void factory(const std::string &type, const std::string &label) {
