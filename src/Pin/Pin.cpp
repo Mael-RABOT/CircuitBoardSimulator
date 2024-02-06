@@ -1,9 +1,9 @@
 #include "Pin.hpp"
 
 namespace nts {
-    Pin::Pin() : _state(nts::Tristate::Undefined) {}
+    Pin::Pin() : _id(0), _state(nts::Tristate::Undefined) {}
 
-    Pin::Pin(nts::Tristate state) : _state(state) {}
+    Pin::Pin(std::size_t id, nts::Tristate state) : _id(id), _state(state) {}
 
     Pin::~Pin() {}
 
@@ -15,11 +15,24 @@ namespace nts {
         _state = state;
     }
 
-    void Pin::setLink(std::size_t pin, nts::Pin &other) {
-        _links[pin].push_back(other);
+    void Pin::setLink(nts::Pin &other) {
+        _links.push_back(other);
     }
 
-    std::vector<Pin> Pin::getLinks(std::size_t pin) {
-        return _links[pin];
+    Tristate Pin::updatePin(std::size_t tick) {
+        if (_tick == tick)
+            return _state;
+        _tick = tick;
+        _state = Tristate::Undefined;
+        if (_links.empty()) {
+            return _state;
+        }
+        for (auto &link : _links)
+            _state = std::max(_state, link.getState());
+        return _state;
+    }
+
+    std::vector<Pin> Pin::getLinks() {
+        return _links;
     }
 }

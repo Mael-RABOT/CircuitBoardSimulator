@@ -1,11 +1,13 @@
 #pragma once
 
 #include "../Pin/Pin.hpp"
+#include "../../include/Error/Error.hpp"
 
 namespace nts {
     class AComponent : public IComponent {
-        private:
-            std::unordered_map<std::size_t, nts::Pin> _pins;
+        protected:
+            std::map<std::size_t, nts::Pin> _pins;
+            std::size_t _tick;
 
         public:
             AComponent(std::size_t nbPins);

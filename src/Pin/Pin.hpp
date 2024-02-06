@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 #include "../Component/IComponent.hpp"
@@ -8,16 +8,19 @@
 namespace nts {
     class Pin {
         private:
+            std::size_t _id;
+            std::size_t _tick;
             nts::Tristate _state;
-            std::unordered_map<std::size_t, std::vector<Pin>> _links;
+            std::vector<Pin> _links;
 
         public:
             Pin();
-            Pin(nts::Tristate state);
+            Pin(std::size_t id, nts::Tristate state);
             ~Pin();
             nts::Tristate getState() const;
             void setState(nts::Tristate state);
-            void setLink(std::size_t pin, nts::Pin &other);
-            std::vector<Pin> getLinks(std::size_t pin);
+            void setLink(nts::Pin &other);
+            Tristate updatePin(std::size_t tick);
+            std::vector<Pin> getLinks();
     };
 }
