@@ -20,15 +20,20 @@ namespace nts {
     }
 
     Tristate Pin::updatePin(std::size_t tick) {
+        std::cout << "> updatePin " << _id << std::endl;
         if (_tick == tick)
             return _state;
         _tick = tick;
         _state = Tristate::Undefined;
         if (_links.empty()) {
+            std::cout << "> No links" << std::endl;
             return _state;
         }
-        for (auto &link : _links)
+        for (auto &link : _links) {
+            std::cout << "> Link: " << link.getState() << std::endl;
             _state = std::max(_state, link.getState());
+        }
+        std::cout << "> State: " << _state << std::endl;
         return _state;
     }
 

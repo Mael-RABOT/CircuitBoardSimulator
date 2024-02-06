@@ -11,7 +11,7 @@ namespace nts {
             std::size_t _id;
             std::size_t _tick;
             nts::Tristate _state;
-            std::vector<Pin> _links;
+            std::vector<Pin &> _links;
 
         public:
             Pin();

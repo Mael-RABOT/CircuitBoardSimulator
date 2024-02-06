@@ -45,6 +45,8 @@ namespace nts {
     ) {
         if (type == "input")
             this->addComponent(label, new nts::Input(state), nts::ComponentType::INPUT);
+        else if (type == "output")
+            this->addComponent(label, new nts::Output(), nts::ComponentType::OUTPUT);
         else if (type == "clock")
             this->addComponent(label, new nts::Clock(state), nts::ComponentType::INPUT);
         else if (type == "and")
