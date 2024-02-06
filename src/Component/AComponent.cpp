@@ -26,6 +26,11 @@ namespace nts {
 
     void AComponent::setLink(std::size_t pin, nts::IComponent &other, std::size_t otherPin) {
         _pins[pin].setLink(other, other.getPin(otherPin));
+        other.reversedLink(otherPin, *this, pin);
+    }
+
+    void AComponent::reversedLink(std::size_t pin, nts::IComponent &other, std::size_t otherPin) {
+        _pins[pin].setLink(other, other.getPin(otherPin));
     }
 
     Pin &AComponent::getPin(std::size_t pin) {
