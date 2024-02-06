@@ -8,9 +8,7 @@ namespace nts {
             Output() : AComponent(1) {};
 
             void simulate(std::size_t tick) {
-                this->_tick = tick;
-                this->_pins[1].updatePin(this->_tick);
-                std::cout << this->_pins[1].getState() << std::endl;
+                this->_pins[1].updatePin(tick);
             };
 
             nts::Tristate compute(std::size_t pin) {

@@ -7,10 +7,11 @@ namespace nts {
     public:
         Clock(Tristate state) : AComponent(1) {
             this->getPin(1).setState(state);
+            this->getPin(1).setIsInput(true);
         };
 
         void simulate(std::size_t tick) {
-            this->_tick = tick;
+            this->_lastTick = tick;
             this->getPin(1).setState((tick % 2 == 0) ? Tristate::False : Tristate::True);
         };
 

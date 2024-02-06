@@ -1,9 +1,13 @@
 #include "Pin.hpp"
 
 namespace nts {
-    Pin::Pin() : _id(0), _state(nts::Tristate::Undefined) {}
+    Pin::Pin() : _id(0), _state(nts::Tristate::Undefined), _isInput(false) {
+        _lastTick = 0;
+    }
 
-    Pin::Pin(std::size_t id, nts::Tristate state) : _id(id), _state(state) {}
+    Pin::Pin(std::size_t id, nts::Tristate state) : _id(id), _state(state), _isInput(false) {
+        _lastTick = 0;
+    }
 
     Pin::~Pin() {}
 
@@ -15,23 +19,28 @@ namespace nts {
         _state = state;
     }
 
-    void Pin::setLink(nts::Pin &other) {
-        _links.push_back(std::ref(other));
+    void Pin::setLink(nts::IComponent &component, nts::Pin &other) {
+        _links.push_back(std::make_pair(std::ref(component), std::ref(other)));
+    }
+
+    void Pin::setIsInput(bool isIsInput) {
+        _isInput = isIsInput;
     }
 
     Tristate Pin::updatePin(std::size_t tick) {
-        std::cout << "> updatePin " << _id << std::endl;
-        if (_tick == tick)
+        if (tick <= _lastTick)
             return _state;
-        _tick = tick;
+        _lastTick = tick;
+        if (_isInput)
+            return _state;
         _state = Tristate::Undefined;
         if (_links.empty()) {
-            std::cout << "> No links" << std::endl;
             return _state;
         }
-        std::cout << "> State: " << _state << std::endl;
-        for (auto &link : _links)
-            _state = std::max(_state, link.get().getState());
+        for (auto &link : _links) {
+            link.first.get().simulate(tick);
+            _state = std::max(_state, link.second.get().updatePin(tick));
+        }
         return _state;
     }
 }

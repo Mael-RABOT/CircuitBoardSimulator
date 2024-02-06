@@ -7,15 +7,10 @@ namespace nts {
         public:
             Input(Tristate state) : AComponent(1) {
                 this->getPin(1).setState(state);
+                this->getPin(1).setIsInput(true);
             };
 
-            void simulate(std::size_t tick) {
-                this->_tick = tick;
-                if (this->getPin(1).getState() == Tristate::Undefined)
-                    return;
-                this->getPin(1)
-                    .setState(this->getPin(1).getState() == Tristate::True ? Tristate::False : Tristate::True);
-            };
+            void simulate(std::size_t) {};
 
             nts::Tristate compute(std::size_t pin) {
                 if (pin != 1)

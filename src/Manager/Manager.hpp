@@ -16,20 +16,19 @@ namespace nts {
             std::map<std::string, IComponent *> _inputs;
             std::map<std::string, IComponent *> _outputs;
             std::map<std::string, IComponent *> _components;
+            std::size_t _lastTick;
 
         public:
             Manager();
             void addComponent(const std::string &label, IComponent *component, ComponentType type);
 
+            void factory(const std::string &type, const std::string &label) {
+                this->factory(type, label, nts::Tristate::Undefined);
+            };
             void factory(
                 const std::string &type,
                 const std::string &label,
-                std::size_t nbPins,
                 nts::Tristate state);
-
-            void factory(const std::string &type, const std::string &label) {
-                this->factory(type, label, NO_PIN, nts::Tristate::Undefined);
-            };
 
             void addLink(
                     const std::string &label,
@@ -37,6 +36,12 @@ namespace nts {
                     std::size_t sourcePin,
                     nts::IComponent &other,
                     std::size_t otherPin);
+
+            void debug() const { this->debug(true, true, true); };
+            void debug(bool, bool, bool) const;
+
+            void simulate() { this->simulate(_lastTick + 1); };
+            void simulate(std::size_t tick);
 
             std::map<std::string, IComponent *> getInputs() { return _inputs; };
             std::map<std::string, IComponent *> getOutputs() { return _outputs; };
