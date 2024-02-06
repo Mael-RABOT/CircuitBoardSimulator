@@ -1,0 +1,12 @@
+# Editor settings
+/.idea
+
+# Compiled files
+nanotekspice
+*.out
+*.o
+*.gcov
+*.gcda
+*.gcno
+*.pdf
+.vscode/**
