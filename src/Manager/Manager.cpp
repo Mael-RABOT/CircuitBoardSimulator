@@ -20,10 +20,14 @@ namespace nts {
     ) {
         if (type == "input")
             return this->addComponent(label, new nts::Input());
-        else if (type == "clock")
-            return this->addComponent(label, new nts::Clock());
         else if (type == "output")
             return this->addComponent(label, new nts::Output());
+        else if (type == "clock")
+            return this->addComponent(label, new nts::Clock());
+        else if (type == "true")
+            return this->addComponent(label, new TrueC());
+        else if (type == "false")
+            return this->addComponent(label, new FalseC());
         else if (type == "and")
             return this->addComponent(label, new nts::And());
         throw CustomError("Unknown component: " + type);
