@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../AComponent.hpp"
+#include "../../AComponent.hpp"
 
 namespace nts {
     class And : public AComponent {

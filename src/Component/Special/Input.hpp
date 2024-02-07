@@ -11,11 +11,5 @@ namespace nts {
             };
 
             void simulate(std::size_t) {};
-
-            nts::Tristate compute(std::size_t pin) {
-                if (pin != 1)
-                    throw nts::CustomError("Pin not found: " + std::to_string(pin));
-                return this->getPin(pin).getState();
-            };
     };
 }
