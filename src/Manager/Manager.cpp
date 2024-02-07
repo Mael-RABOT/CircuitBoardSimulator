@@ -25,15 +25,17 @@ namespace nts {
         else if (type == "clock")
             return this->addComponent(label, new nts::Clock());
         else if (type == "true")
-            return this->addComponent(label, new TrueC());
+            return this->addComponent(label, new nts::CTrue());
         else if (type == "false")
-            return this->addComponent(label, new FalseC());
+            return this->addComponent(label, new nts::CFalse());
         else if (type == "and")
             return this->addComponent(label, new nts::And());
         else if (type == "not")
             return this->addComponent(label, new nts::Not());
         else if (type == "or")
             return this->addComponent(label, new nts::Or());
+        else if (type == "nor")
+            return this->addComponent(label, new nts::Nor());
         else if (type == "xor")
             return this->addComponent(label, new nts::Xor());
 

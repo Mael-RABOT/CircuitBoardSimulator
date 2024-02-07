@@ -5,7 +5,7 @@
 namespace nts {
     class Or : public AComponent {
     public:
-        Or() : AComponent(3) {};
+        Or() : AComponent(3, nts::ComponentType::COMPONENT) {};
         void simulate(std::size_t tick);
     };
 }

@@ -9,4 +9,5 @@
 #include "../src/Component/Elementary/And/And.hpp"
 #include "../src/Component/Elementary/Not/Not.hpp"
 #include "../src/Component/Elementary/Or/Or.hpp"
+#include "../src/Component/Elementary/Nor/Nor.hpp"
 #include "../src/Component/Elementary/Xor/Xor.hpp"

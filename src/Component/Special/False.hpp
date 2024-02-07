@@ -3,9 +3,9 @@
 #include "../AComponent.hpp"
 
 namespace nts {
-    class FalseC : public AComponent {
+    class CFalse : public AComponent {
     public:
-        FalseC() : AComponent(1, nts::ComponentType::INPUT) {
+        CFalse() : AComponent(1, nts::ComponentType::INPUT) {
             this->getPin(1).setState(nts::Tristate::False);
         };
 
