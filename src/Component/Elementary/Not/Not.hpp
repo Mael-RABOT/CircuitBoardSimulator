@@ -5,7 +5,7 @@
 namespace nts {
     class Not : public AComponent {
     public:
-        Not() : AComponent(2) {};
+        Not() : AComponent(2, nts::ComponentType::COMPONENT) {};
         void simulate(std::size_t tick);
     };
 }
