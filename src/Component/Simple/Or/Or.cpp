@@ -2,9 +2,9 @@
 
 namespace nts {
     void Or::simulate(std::size_t tick) {
-        for (auto &pin : _pins) {
+        for (auto &pin : _pins)
             pin.second.updatePin(tick);
-        }
+
         if (_pins[1].getState() == Tristate::True || _pins[2].getState() == Tristate::True) {
             _pins[3].setState(Tristate::True);
             return;

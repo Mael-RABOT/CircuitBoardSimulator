@@ -3,9 +3,9 @@
 #include "../../AComponent.hpp"
 
 namespace nts {
-    class Or : public AComponent {
+    class Xor : public AComponent {
     public:
-        Or() : AComponent(3) {};
+        Xor() : AComponent(3) {};
         void simulate(std::size_t tick);
     };
 }

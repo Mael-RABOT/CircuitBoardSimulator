@@ -34,6 +34,8 @@ namespace nts {
             return this->addComponent(label, new nts::Not());
         else if (type == "or")
             return this->addComponent(label, new nts::Or());
+        else if (type == "xor")
+            return this->addComponent(label, new nts::Xor());
 
         throw CustomError("Unknown component: " + type);
     }
