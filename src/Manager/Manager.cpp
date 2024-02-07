@@ -186,9 +186,20 @@ namespace nts {
         }
     }
 
+    void _help() {
+        if (std::system("pandoc --version > /dev/null 2>&1") != 0) {
+            throw CustomError("Usage: ./nanotekspice [file.nts] (flags)");
+        }
+        if (std::system("lynx --version > /dev/null 2>&1") != 0) {
+            throw CustomError("Usage: ./nanotekspice [file.nts] (flags)");
+        }
+        system("pandoc ReadMe.md | lynx -stdin");
+    }
+
     void Manager::parser(int ac, char **av) {
         if (ac != 2 || std::string(av[1]) == "-h" || std::string(av[1]) == "--help") {
-            throw CustomError("Usage: " + std::string(av[0]) + " <filename>");
+            _help();
+            exit(0);
         }
         if (std::string(av[1]) == "--run-empty") {
             this->factory("input", "input1");
@@ -334,7 +345,7 @@ namespace nts {
                 try {
                     this->_handleCommand(command);
                 } catch (const CustomError &e) {
-                    std::cout << "---- " << e.what() << std::endl;
+                    std::cout << "\033[31m" << e.what() << "\033[39m" << std::endl;
                 }
             }
         }
