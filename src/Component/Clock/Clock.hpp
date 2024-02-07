@@ -5,9 +5,8 @@
 namespace nts {
     class Clock : public AComponent {
     public:
-        Clock(Tristate state) : AComponent(1, nts::ComponentType::INPUT) {
-            this->getPin(1).setState(state);
-            this->getPin(1).setIsInput(true);
+        Clock() : AComponent(1, nts::ComponentType::INPUT) {
+            this->getPin(1).setState(nts::Tristate::Undefined);
         };
 
         void simulate(std::size_t tick) {

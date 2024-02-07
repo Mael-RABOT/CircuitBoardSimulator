@@ -36,8 +36,7 @@ namespace nts {
             bool addComponent(const std::string &label, IComponent *component);
             bool factory(
                 const std::string &type,
-                const std::string &label,
-                nts::Tristate state);
+                const std::string &label);
 
             void addLink(
                     const std::string &label,

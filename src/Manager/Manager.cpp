@@ -16,13 +16,12 @@ namespace nts {
 
     bool Manager::factory(
             const std::string &type,
-            const std::string &label,
-            nts::Tristate state = nts::Tristate::Undefined
+            const std::string &label
     ) {
         if (type == "input")
             return this->addComponent(label, new nts::Input());
         else if (type == "clock")
-            return this->addComponent(label, new nts::Clock(state));
+            return this->addComponent(label, new nts::Clock());
         else if (type == "output")
             return this->addComponent(label, new nts::Output());
         else if (type == "and")
