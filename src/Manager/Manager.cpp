@@ -30,6 +30,8 @@ namespace nts {
             return this->addComponent(label, new FalseC());
         else if (type == "and")
             return this->addComponent(label, new nts::And());
+        else if (type == "not")
+            return this->addComponent(label, new nts::Not());
         throw CustomError("Unknown component: " + type);
     }
 
