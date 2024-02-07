@@ -31,8 +31,11 @@ namespace nts {
         if (tick <= _lastTick)
             return _state;
         _lastTick = tick;
-        if (_isInput)
+        if (_isInput) {
+            if (tick == 0)
+                return nts::Tristate::Undefined;
             return _state;
+        }
         _state = Tristate::Undefined;
         if (_links.empty()) {
             return _state;
