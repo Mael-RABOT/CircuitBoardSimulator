@@ -212,6 +212,8 @@ namespace nts {
         if (line == "clear") {
             #ifdef __unix__
             system("clear");
+            #elifdef _WIN32
+            throw CustomError("Don't use Windows");
             #endif
             return;
         }
