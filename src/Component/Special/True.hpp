@@ -5,7 +5,7 @@
 namespace nts {
     class TrueC : public AComponent {
     public:
-        TrueC() : AComponent(1, nts::ComponentType::COMPONENT) {
+        TrueC() : AComponent(1, nts::ComponentType::INPUT) {
             this->getPin(1).setState(nts::Tristate::True);
         };
 
