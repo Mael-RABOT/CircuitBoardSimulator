@@ -39,11 +39,7 @@ namespace nts {
         _allChip[label]->setLink(sourcePin, other, otherPin);
     }
 
-    void Manager::debug(
-            bool inputs __attribute_maybe_unused__ = true,
-            bool components __attribute_maybe_unused__ = true,
-            bool outputs __attribute_maybe_unused__ = true
-    ) const {
+    void Manager::debug(bool inputs, bool components, bool outputs) const {
         if (inputs) {
             std::cout << "Inputs: " << std::endl;
             for (auto &input: _allChip) {
@@ -114,7 +110,7 @@ namespace nts {
         }
     }
 
-    void Manager::stageLinksHandler(const std::string &line) {
+    void Manager::_stageLinksHandler(const std::string &line) {
         std::istringstream iss(line);
         std::string src, dest;
 
@@ -154,7 +150,7 @@ namespace nts {
                 destPin);
     }
 
-    void Manager::parserLoop(std::ifstream &fs) {
+    void Manager::_parserLoop(std::ifstream &fs) {
         std::string line;
         nts::ParserStage stage = nts::ParserStage::UNDEFINED;
         while (std::getline(fs, line)) {
@@ -166,7 +162,7 @@ namespace nts {
                     stageChipsetHandler(*this, line);
                     break;
                 case nts::ParserStage::LINKS:
-                    this->stageLinksHandler(line);
+                    this->_stageLinksHandler(line);
                     break;
                 default:
                     throw CustomError("Invalid stage: " + std::to_string(stage));
@@ -186,7 +182,122 @@ namespace nts {
         if (!fs.is_open()) {
             throw CustomError("Could not open file: " + std::string(av[1]));
         }
-        this->parserLoop(fs);
+        this->_parserLoop(fs);
         fs.close();
+    }
+
+    void Manager::display() {
+        std::cout << "tick: " << _lastTick << std::endl;
+        std::cout << "input(s):" << std::endl;
+        for (auto &input: _allChip) {
+            if (input.second->getType() != ComponentType::INPUT)
+                continue;
+            std::cout << "  " << input.first << ": "
+                << ((input.second->getPin(1).getState() == nts::Tristate::Undefined)
+                    ? "U" : (input.second->getPin(1).getState() == nts::Tristate::True) ? "1" : "0")
+                << std::endl;
+        }
+        std::cout << "output(s):" << std::endl;
+        for (auto &output: _allChip) {
+            if (output.second->getType() != ComponentType::OUTPUT)
+                continue;
+            std::cout << "  " << output.first << ": "
+                << ((output.second->getPin(1).getState() == nts::Tristate::Undefined)
+                    ? "U" : (output.second->getPin(1).getState() == nts::Tristate::True) ? "1" : "0")
+                << std::endl;
+        }
+    }
+
+    void Manager::_handleCommand(const std::string &line) {
+        if (line == "clear") {
+            #ifdef __unix__
+            system("clear");
+            #endif
+            return;
+        }
+        if (line == "debug") {
+            this->debug();
+            return;
+        }
+        if (line == "simulate") {
+            this->simulate();
+            return;
+        }
+        if (line == "display") {
+            this->display();
+            return;
+        }
+        this->_interpretLine(line);
+    }
+
+    void Manager::_interpretLine(const std::string &line) {
+        std::string target;
+        std::string tension;
+
+        std::istringstream iss(line);
+        if (!(std::getline(iss, target, '=') && std::getline(iss, tension) && iss.eof())) {
+            throw CustomError("Invalid command: " + line);
+        }
+        if (tension != "0" && tension != "1") {
+            throw CustomError("Invalid tension: " + tension);
+        }
+        if (_allChip.find(target) == _allChip.end()) {
+            throw CustomError("Unknown component: " + target);
+        }
+        if (_allChip[target]->getType() != ComponentType::INPUT) {
+            throw CustomError("Invalid component type: " + target);
+        }
+        _allChip[target]->getPin(1).setState(
+                (tension == "1") ? nts::Tristate::True :
+                nts::Tristate::False
+        );
+    }
+
+    void Manager::_checkRun() const {
+        bool hasInput = false;
+        for (auto &component: _allChip) {
+            if (component.second->getType() == ComponentType::INPUT) {
+                hasInput = true;
+                break;
+            }
+        }
+        if (!hasInput) {
+            throw CustomError("No input found");
+        }
+        bool hasOutput = false;
+        for (auto &component: _allChip) {
+            if (component.second->getType() == ComponentType::OUTPUT) {
+                hasOutput = true;
+                break;
+            }
+        }
+        if (!hasOutput) {
+            throw CustomError("No output found");
+        }
+    }
+
+    void Manager::run() {
+        this->_checkRun();
+        std::string line;
+        while (std::cout << "> " && std::getline(std::cin, line)) {
+            std::vector<std::string> commands;
+            std::istringstream iss(line);
+            std::string token;
+
+            while (std::getline(iss, token, '&')) {
+                token.erase(0, token.find_first_not_of(" \t\r\n"));
+                token.erase(token.find_last_not_of(" \t\r\n") + 1);
+                if (!token.empty()) {
+                    commands.push_back(token);
+                }
+            }
+
+            for (const auto& command : commands) {
+                if (command == "exit") {
+                    return;
+                }
+                this->_handleCommand(command);
+            }
+        }
     }
 }

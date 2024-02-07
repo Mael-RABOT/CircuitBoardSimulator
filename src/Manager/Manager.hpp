@@ -3,6 +3,7 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
+#include <cstdlib>
 
 #include "../../include/Components.hpp"
 
@@ -18,6 +19,14 @@ namespace nts {
         private:
             std::map<std::string, IComponent *> _allChip;
             std::size_t _lastTick;
+
+            void _handleCommand(const std::string &line);
+            void _interpretLine(const std::string &line);
+
+            void _stageLinksHandler(const std::string &line);
+            void _parserLoop(std::ifstream &fs);
+
+            void _checkRun() const;
 
         public:
             Manager() : _lastTick(0) {};
@@ -35,14 +44,11 @@ namespace nts {
                     nts::IComponent &other,
                     std::size_t otherPin);
 
-            void debug() const { this->debug(true, true, true); };
-            void debug(bool, bool, bool) const;
+            void debug(bool = true, bool = true, bool = true) const;
 
             void simulate() { this->simulate(_lastTick + 1); };
             void simulate(std::size_t tick);
 
-            void stageLinksHandler(const std::string &line);
-            void parserLoop(std::ifstream &fs);
             void parser(int ac, char **av);
 
             IComponent *getComponent(const std::string &label) {
@@ -50,5 +56,8 @@ namespace nts {
                     return _allChip[label];
                 throw CustomError("Unknown component: " + label);
             };
+
+            void display();
+            void run();
     };
 }
