@@ -8,3 +8,4 @@
 
 #include "../src/Component/Simple/And/And.hpp"
 #include "../src/Component/Simple/Not/Not.hpp"
+#include "../src/Component/Simple/Or/Or.hpp"
