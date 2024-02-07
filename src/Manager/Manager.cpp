@@ -20,7 +20,7 @@ namespace nts {
             nts::Tristate state = nts::Tristate::Undefined
     ) {
         if (type == "input")
-            return this->addComponent(label, new nts::Input(state));
+            return this->addComponent(label, new nts::Input());
         else if (type == "clock")
             return this->addComponent(label, new nts::Clock(state));
         else if (type == "output")
@@ -105,6 +105,8 @@ namespace nts {
         if (!(iss >> type && iss >> label)) {
             throw CustomError("Invalid chipset line: " + line);
         }
+        label = label.substr(0, label.find_first_of("#"));
+        label.erase(label.find_last_not_of(" \t\r\n") + 1);
         if (!this->factory(type, label)) {
             throw CustomError("Could not add component: " + label);
         }
