@@ -20,7 +20,7 @@ namespace nts {
             nts::Tristate state = nts::Tristate::Undefined
     ) {
         if (type == "input")
-            return this->addComponent(label, new nts::Input(state));
+            return this->addComponent(label, new nts::Input());
         else if (type == "clock")
             return this->addComponent(label, new nts::Clock(state));
         else if (type == "output")
@@ -98,14 +98,16 @@ namespace nts {
         return newStage = (newStage == nts::ParserStage::UNCHANGED) ? stage : newStage;
     }
 
-    void stageChipsetHandler(nts::Manager &manager, const std::string &line) {
+    void Manager::_stageChipsetHandler(const std::string &line) {
         std::istringstream iss(line);
         std::string type, label;
 
         if (!(iss >> type && iss >> label)) {
             throw CustomError("Invalid chipset line: " + line);
         }
-        if (!manager.factory(type, label)) {
+        label = label.substr(0, label.find_first_of("#"));
+        label.erase(label.find_last_not_of(" \t\r\n") + 1);
+        if (!this->factory(type, label)) {
             throw CustomError("Could not add component: " + label);
         }
     }
@@ -159,7 +161,7 @@ namespace nts {
                 continue;
             switch (stage) {
                 case nts::ParserStage::CHIPSET:
-                    stageChipsetHandler(*this, line);
+                    this->_stageChipsetHandler(line);
                     break;
                 case nts::ParserStage::LINKS:
                     this->_stageLinksHandler(line);
@@ -173,6 +175,12 @@ namespace nts {
     void Manager::parser(int ac, char **av) {
         if (ac != 2 || std::string(av[1]) == "-h" || std::string(av[1]) == "--help") {
             throw CustomError("Usage: " + std::string(av[0]) + " <filename>");
+        }
+        if (std::string(av[1]) == "--run-empty") {
+            this->factory("input", "input1");
+            this->factory("output", "output1");
+            this->addLink("input1", 1, *this->getComponent("output1"), 1);
+            return;
         }
         const char* extension = strrchr(av[1], '.');
         if (extension == nullptr || strcmp(extension, ".nts") != 0) {
@@ -212,7 +220,8 @@ namespace nts {
         if (line == "clear") {
             #ifdef __unix__
             system("clear");
-            #elifdef _WIN32
+            #endif
+            #ifdef _WIN32
             throw CustomError("Don't use Windows");
             #endif
             return;
@@ -227,6 +236,24 @@ namespace nts {
         }
         if (line == "display") {
             this->display();
+            return;
+        }
+        if (line.find("add ") == 0) {
+            std::string command = line.substr(4);
+            try {
+                this->_stageChipsetHandler(command);
+            } catch (const CustomError &e) {
+                std::cout << "---- " << e.what() << std::endl;
+            }
+            return;
+        }
+        if (line.find("link ") == 0) {
+            std::string command = line.substr(5);
+            try {
+                this->_stageLinksHandler(command);
+            } catch (const CustomError &e) {
+                std::cout << "---- " << e.what() << std::endl;
+            }
             return;
         }
         this->_interpretLine(line);
