@@ -23,6 +23,7 @@ namespace nts {
             void _handleCommand(const std::string &line);
             void _interpretLine(const std::string &line);
 
+            void _stageChipsetHandler(const std::string &line);
             void _stageLinksHandler(const std::string &line);
             void _parserLoop(std::ifstream &fs);
 

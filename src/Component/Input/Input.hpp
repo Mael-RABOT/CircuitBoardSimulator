@@ -5,8 +5,8 @@
 namespace nts {
     class Input : public AComponent {
         public:
-            Input(Tristate state) : AComponent(1, nts::ComponentType::INPUT) {
-                this->getPin(1).setState(state);
+            Input(Tristate state) : AComponent(1, nts::ComponentType::Input) {
+                this->getPin(1).setState(nts::Tristate::Undefined);
                 this->getPin(1).setIsInput(true);
             };
 
