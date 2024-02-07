@@ -1,32 +1,24 @@
 #include "Manager/Manager.hpp"
 
-int main() {
+int main(int ac, char **av) {
     try {
-        /* Init */
-        nts::Manager circuit;
-        circuit.factory("clock", "i1", nts::Tristate::True);
-        circuit.factory("input", "i2", nts::Tristate::True);
-        circuit.factory("output", "o1");
-        circuit.factory("and", "and1");
-        circuit.factory("output", "o2");
+        nts::Manager manager;
+        manager.parser(ac, av);
 
-        /* Link */
-        circuit.getComponent("and1")->setLink(1, *circuit.getInput("i1"), 1);
-        circuit.getComponent("and1")->setLink(2, *circuit.getInput("i2"), 1);
-        circuit.getOutput("o1")->setLink(1, *circuit.getComponent("and1"), 3);
-        circuit.getOutput("o2")->setLink(1, *circuit.getComponent("and1"), 3);
+        /* Tests */
+        manager.debug();
 
-        /* Display */
-        circuit.simulate(1);
-        circuit.debug();
-        circuit.simulate(2);
-        circuit.debug(true, false, true);
-        circuit.simulate();
-        circuit.debug(true, false, true);
-        circuit.simulate();
-        circuit.debug(true, false, true);
-        circuit.simulate();
-        circuit.debug();
+        std::cout << "------" << std::endl;
+        manager.getComponent("in_1")->getPin(1).setState(nts::Tristate::True);
+        manager.getComponent("in_2")->getPin(1).setState(nts::Tristate::True);
+        manager.simulate();
+        manager.debug();
+
+        std::cout << "------" << std::endl;
+        manager.getComponent("in_1")->getPin(1).setState(nts::Tristate::False);
+        manager.getComponent("in_2")->getPin(1).setState(nts::Tristate::True);
+        manager.simulate();
+        manager.debug();
 
     } catch (const nts::CustomError &e) {
         std::cerr << e.what() << std::endl;

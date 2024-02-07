@@ -1,39 +1,36 @@
 #pragma once
 
+#include <cstring>
+#include <fstream>
+#include <sstream>
+
 #include "../../include/Components.hpp"
 
-#define NO_PIN 0
-
 namespace nts {
-    enum ComponentType {
-        INPUT,
-        OUTPUT,
-        COMPONENT
+    enum ParserStage {
+        UNDEFINED = -1,
+        UNCHANGED = 0,
+        CHIPSET = 1,
+        LINKS = 2
     };
 
     class Manager {
         private:
-            std::map<std::string, IComponent *> _inputs;
-            std::map<std::string, IComponent *> _outputs;
-            std::map<std::string, IComponent *> _components;
+            std::map<std::string, IComponent *> _allChip;
             std::size_t _lastTick;
 
         public:
-            Manager();
+            Manager() : _lastTick(0) {};
             ~Manager();
-            void addComponent(const std::string &label, IComponent *component, ComponentType type);
 
-            void factory(const std::string &type, const std::string &label) {
-                this->factory(type, label, nts::Tristate::Undefined);
-            };
-            void factory(
+            bool addComponent(const std::string &label, IComponent *component);
+            bool factory(
                 const std::string &type,
                 const std::string &label,
                 nts::Tristate state);
 
             void addLink(
                     const std::string &label,
-                    ComponentType type,
                     std::size_t sourcePin,
                     nts::IComponent &other,
                     std::size_t otherPin);
@@ -44,11 +41,14 @@ namespace nts {
             void simulate() { this->simulate(_lastTick + 1); };
             void simulate(std::size_t tick);
 
-            std::map<std::string, IComponent *> getInputs() { return _inputs; };
-            std::map<std::string, IComponent *> getOutputs() { return _outputs; };
-            std::map<std::string, IComponent *> getComponents() { return _components; };
-            IComponent *getInput(const std::string &label) { return _inputs[label]; };
-            IComponent *getOutput(const std::string &label) { return _outputs[label]; };
-            IComponent *getComponent(const std::string &label) { return _components[label]; };
+            void stageLinksHandler(const std::string &line);
+            void parserLoop(std::ifstream &fs);
+            void parser(int ac, char **av);
+
+            IComponent *getComponent(const std::string &label) {
+                if (_allChip.find(label) != _allChip.end())
+                    return _allChip[label];
+                throw CustomError("Unknown component: " + label);
+            };
     };
 }

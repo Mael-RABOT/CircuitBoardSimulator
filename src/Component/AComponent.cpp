@@ -1,11 +1,12 @@
 #include "AComponent.hpp"
 
 namespace nts {
-    AComponent::AComponent(std::size_t nbPin) : IComponent() {
+    AComponent::AComponent(std::size_t nbPin, nts::ComponentType type) : IComponent() {
         for (std::size_t i = 1; i <= nbPin; i++) {
             _pins[i] = nts::Pin(i, Tristate::Undefined);
         }
         _lastTick = 0;
+        _type = type;
     }
 
     void AComponent::simulate(std::size_t tick) {
@@ -19,7 +20,7 @@ namespace nts {
 
     nts::Tristate AComponent::compute(std::size_t pin) {
         if (_pins.find(pin) == _pins.end()) {
-            throw nts::CustomError("Pin not found");
+            throw nts::CustomError("Pin not found: " + std::to_string(pin));
         }
         return _pins[pin].getState();
     }
@@ -35,7 +36,7 @@ namespace nts {
 
     Pin &AComponent::getPin(std::size_t pin) {
         if (_pins.find(pin) == _pins.end()) {
-            throw nts::CustomError("Pin not found");
+            throw nts::CustomError("Pin not found: " + std::to_string(pin));
         }
         return _pins[pin];
     }

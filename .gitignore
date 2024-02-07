@@ -1,6 +1,10 @@
 # Editor settings
 /.idea
 
+# Project files
+*.nts
+./nts*
+
 # Compiled files
 nanotekspice
 *.out
