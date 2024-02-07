@@ -39,9 +39,9 @@ namespace nts {
                 const std::string &label);
 
             void addLink(
-                    const std::string &label,
+                    const std::string &source,
                     std::size_t sourcePin,
-                    nts::IComponent &other,
+                    const std::string &dest,
                     std::size_t otherPin);
 
             void debug(bool = true, bool = true, bool = true) const;

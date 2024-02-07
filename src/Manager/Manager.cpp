@@ -34,15 +34,17 @@ namespace nts {
     }
 
     void Manager::addLink(
-            const std::string &label,
+            const std::string &source,
             std::size_t sourcePin,
-            nts::IComponent &other,
+            const std::string &dest,
             std::size_t otherPin
     ) {
-        _allChip[label]->setLink(sourcePin, other, otherPin);
+        _allChip[source]->setLink(sourcePin, *_allChip[dest], otherPin);
+        _allChip[dest]->reversedLink(otherPin, *_allChip[source], sourcePin);
     }
 
     void Manager::debug(bool inputs, bool components, bool outputs) const {
+        std::cout << "tick: " << _lastTick << std::endl;
         if (inputs) {
             std::cout << "Inputs: " << std::endl;
             for (auto &input: _allChip) {
@@ -151,7 +153,7 @@ namespace nts {
         this->addLink(
                 src,
                 srcPin,
-                *this->getComponent(dest),
+                dest,
                 destPin);
     }
 
@@ -182,7 +184,7 @@ namespace nts {
         if (std::string(av[1]) == "--run-empty") {
             this->factory("input", "input1");
             this->factory("output", "output1");
-            this->addLink("input1", 1, *this->getComponent("output1"), 1);
+            this->addLink("input1", 1, "output1", 1);
             return;
         }
         const char* extension = strrchr(av[1], '.');
@@ -204,8 +206,8 @@ namespace nts {
             if (input.second->getType() != ComponentType::INPUT)
                 continue;
             std::cout << "  " << input.first << ": "
-                << ((input.second->getPin(1).getState() == nts::Tristate::Undefined)
-                    ? "U" : (input.second->getPin(1).getState() == nts::Tristate::True) ? "1" : "0")
+                << ((input.second->compute(1) == nts::Tristate::Undefined)
+                    ? "U" : (input.second->compute(1) == nts::Tristate::True) ? "1" : "0")
                 << std::endl;
         }
         std::cout << "output(s):" << std::endl;
@@ -213,8 +215,8 @@ namespace nts {
             if (output.second->getType() != ComponentType::OUTPUT)
                 continue;
             std::cout << "  " << output.first << ": "
-                << ((output.second->getPin(1).getState() == nts::Tristate::Undefined)
-                    ? "U" : (output.second->getPin(1).getState() == nts::Tristate::True) ? "1" : "0")
+                << ((output.second->compute(1) == nts::Tristate::Undefined)
+                    ? "U" : (output.second->compute(1) == nts::Tristate::True) ? "1" : "0")
                 << std::endl;
         }
     }
@@ -243,20 +245,12 @@ namespace nts {
         }
         if (line.find("add ") == 0) {
             std::string command = line.substr(4);
-            try {
-                this->_stageChipsetHandler(command);
-            } catch (const CustomError &e) {
-                std::cout << "---- " << e.what() << std::endl;
-            }
+            this->_stageChipsetHandler(command);
             return;
         }
         if (line.find("link ") == 0) {
             std::string command = line.substr(5);
-            try {
-                this->_stageLinksHandler(command);
-            } catch (const CustomError &e) {
-                std::cout << "---- " << e.what() << std::endl;
-            }
+            this->_stageLinksHandler(command);
             return;
         }
         this->_interpretLine(line);
@@ -328,7 +322,11 @@ namespace nts {
                 if (command == "exit") {
                     return;
                 }
-                this->_handleCommand(command);
+                try {
+                    this->_handleCommand(command);
+                } catch (const CustomError &e) {
+                    std::cout << "---- " << e.what() << std::endl;
+                }
             }
         }
     }
