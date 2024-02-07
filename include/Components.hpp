@@ -6,7 +6,7 @@
 #include "../src/Component/Special/True.hpp"
 #include "../src/Component/Special/False.hpp"
 
-#include "../src/Component/Simple/And/And.hpp"
-#include "../src/Component/Simple/Not/Not.hpp"
-#include "../src/Component/Simple/Or/Or.hpp"
-#include "../src/Component/Simple/Xor/Xor.hpp"
+#include "../src/Component/Elementary/And/And.hpp"
+#include "../src/Component/Elementary/Not/Not.hpp"
+#include "../src/Component/Elementary/Or/Or.hpp"
+#include "../src/Component/Elementary/Xor/Xor.hpp"
