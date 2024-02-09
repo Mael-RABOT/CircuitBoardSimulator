@@ -1,45 +1,46 @@
 #include "Manager.hpp"
 
 namespace nts {
-    Manager::~Manager() {
-        for (auto &component: _allChip) {
-            delete component.second;
-        }
+
+    bool g_sigintCaught = false;
+
+    bool Manager::createComponent(const std::string &type, const std::string &label) {
+        return this->_factory(type, label);
     }
 
-    bool Manager::addComponent(const std::string &label, IComponent *component) {
-        if (_allChip.find(label) != _allChip.end())
+    bool Manager::_addComponent(const std::string &label, IComponent *component) {
+        if (component == nullptr)
+            throw CustomError("Creation went wrong.");
+        if (_components.find(label) != _components.end())
             return false;
-        _allChip[label] = component;
+        _components[label] = std::move(component);
         return true;
     }
 
-    bool Manager::factory(
-            const std::string &type,
-            const std::string &label
-    ) {
-        if (type == "input")
-            return this->addComponent(label, new nts::Input());
-        else if (type == "output")
-            return this->addComponent(label, new nts::Output());
-        else if (type == "clock")
-            return this->addComponent(label, new nts::Clock());
-        else if (type == "true")
-            return this->addComponent(label, new nts::CTrue());
-        else if (type == "false")
-            return this->addComponent(label, new nts::CFalse());
-        else if (type == "and")
-            return this->addComponent(label, new nts::And());
-        else if (type == "not")
-            return this->addComponent(label, new nts::Not());
-        else if (type == "or")
-            return this->addComponent(label, new nts::Or());
-        else if (type == "nor")
-            return this->addComponent(label, new nts::Nor());
-        else if (type == "xor")
-            return this->addComponent(label, new nts::Xor());
+    bool Manager::_factory(const std::string &type, const std::string &label) {
+        std::map<std::string, std::pair<int, std::vector<std::vector<nts::Tristate>>>> logicGateTypes = {
+                {"and", {3, nts::AND_TRUTH_TABLE}},
+                {"or", {3, nts::OR_TRUTH_TABLE}},
+                {"xor", {3, nts::XOR_TRUTH_TABLE}},
+                {"not", {2, nts::NOT_TRUTH_TABLE}},
+                {"nand", {3, nts::NAND_TRUTH_TABLE}}
+        };
 
-        throw CustomError("Unknown component: " + type);
+        std::map<std::string, std::function<IComponent*(const std::string&)>> special = {
+                {"input", [](const std::string &label) { return new InputComp(label); }},
+                {"output", [](const std::string &label) { return new OutputComp(label); }},
+                {"clock", [](const std::string &label) { return new Clock(label); }},
+                {"true", [](const std::string &label) { return new TrueConst(label); }},
+                {"false", [](const std::string &label) { return new FalseConst(label); }}
+        };
+
+        if (special.find(type) != special.end()) {
+            return this->_addComponent(label, special[type](label));
+        }
+        if (logicGateTypes.find(type) != logicGateTypes.end()) {
+            return this->_addComponent(label, new LogicGate(logicGateTypes[type].first, label, ComponentType::Standard, logicGateTypes[type].second));
+        }
+        throw CustomError("Invalid component type: " + type);
     }
 
     void Manager::addLink(
@@ -47,57 +48,62 @@ namespace nts {
             std::size_t sourcePin,
             const std::string &dest,
             std::size_t otherPin
-    ) {
-        _allChip[source]->setLink(sourcePin, *_allChip[dest], otherPin);
-        _allChip[dest]->reversedLink(otherPin, *_allChip[source], sourcePin);
+    ) { // This function DOES NOT link back if both components are outputs
+        _components[dest]->setLink(otherPin, *_components[source], sourcePin);
+        if (_components[source]->getType() == ComponentType::Output && _components[dest]->getType() == ComponentType::Output)
+            return;
+        _components[source]->setLink(sourcePin, *_components[dest], otherPin);
     }
 
-    void Manager::debug(bool inputs, bool components, bool outputs) const {
-        std::cout << "tick: " << _lastTick << std::endl;
+    void Manager::removeLink(
+        const std::string &source,
+        std::size_t sourcePin,
+        const std::string &dest,
+        std::size_t otherPin
+    ) {
+        _components[source]->removeLink(sourcePin);
+        _components[dest]->removeLink(otherPin);
+    }
+
+    void Manager::_dumpPrint(const std::string &title, ComponentType type) {
+        std::cout << title << std::endl;
+        for (auto &input : _components) {
+            if (input.second->getType() != type)
+                continue;
+            input.second->dump();
+        }
+    }
+
+    void Manager::dump(bool inputs, bool components, bool outputs) {
+        std::cout << "tick: " << _currentTick << std::endl;
         if (inputs) {
-            std::cout << "Inputs: " << std::endl;
-            for (auto &input: _allChip) {
-                if (input.second->getType() != ComponentType::INPUT)
-                    continue;
-                std::cout << " - " << input.first << std::endl;
-                for (auto &pin: input.second->getPins()) {
-                    std::cout << "   - pin " << pin.first << " with state: " << pin.second.getState() << std::endl;
-                }
-            }
+            this->_dumpPrint("Inputs: ", ComponentType::Input);
         }
         if (components) {
-            std::cout << std::endl << "Components: " << std::endl;
-            for (auto &component: _allChip) {
-                if (component.second->getType() != ComponentType::COMPONENT)
-                    continue;
-                std::cout << " - " << component.first << std::endl;
-                for (auto &pin: component.second->getPins()) {
-                    std::cout << "   - pin " << pin.first << " with state: " << pin.second.getState() << std::endl;
-                }
-            }
+            this->_dumpPrint("Standards: ", ComponentType::Standard);
         }
         if (outputs) {
-            std::cout << std::endl << "Outputs: " << std::endl;
-            for (auto &output: _allChip) {
-                if (output.second->getType() != ComponentType::OUTPUT)
-                    continue;
-                std::cout << " - " << output.first << std::endl;
-                for (auto &pin: output.second->getPins()) {
-                    std::cout << "   - pin " << pin.first << " with state: " << pin.second.getState() << std::endl;
-                }
-            }
+            this->_dumpPrint("Output: ", ComponentType::Output);
         }
     }
 
     void Manager::simulate(std::size_t tick) {
-        _lastTick = tick;
-        for (auto &output : _allChip) {
-            if (output.second->getType() == ComponentType::OUTPUT)
-                output.second->simulate(tick);
+        _currentTick = tick;
+        for (auto &output : _components) {
+            if (output.second->getType() == ComponentType::Input)
+                output.second->computeBehaviour(tick);
+        }
+        for (auto &output : _components) {
+            if (output.second->getType() == ComponentType::Standard)
+                output.second->computeBehaviour(tick);
+        }
+        for (auto &output : _components) {
+            if (output.second->getType() == ComponentType::Output)
+                output.second->computeBehaviour(tick);
         }
     }
 
-    nts::ParserStage stageChecker(std::ifstream &fs, std::string &line, nts::ParserStage &stage) {
+    nts::ParserStage Manager::stageChecker(std::ifstream &fs, std::string &line, nts::ParserStage &stage) {
         nts::ParserStage newStage = nts::ParserStage::UNCHANGED;
         if (line == ".chipsets:") {
             newStage = nts::ParserStage::CHIPSET;
@@ -121,12 +127,12 @@ namespace nts {
         }
         label = label.substr(0, label.find_first_of("#"));
         label.erase(label.find_last_not_of(" \t\r\n") + 1);
-        if (!this->factory(type, label)) {
-            throw CustomError("Could not add component: " + label);
+        if (!this->createComponent(type, label)) {
+            throw CustomError("Component already exist: " + label);
         }
     }
 
-    void Manager::_stageLinksHandler(const std::string &line) {
+    void Manager::_stageLinksHandler(const std::string &line, bool remove) {
         std::istringstream iss(line);
         std::string src, dest;
 
@@ -146,31 +152,36 @@ namespace nts {
         dest = dest.substr(0, dest.find(":"));
 
         bool srcExist = false;
-        if (_allChip.find(src) != _allChip.end())
+        if (_components.find(src) != _components.end())
             srcExist = true;
         if (!srcExist)
             throw CustomError("Source Component not found: " + src);
 
         bool destExist = false;
-        if (_allChip.find(dest) != _allChip.end())
+        if (_components.find(dest) != _components.end())
             destExist = true;
         if (!destExist)
             throw CustomError("Destination Component not found: " + dest);
 
-        this->getComponent(src);
-
-        this->addLink(
+        if (!remove)
+            return this->addLink(
                 src,
                 srcPin,
                 dest,
                 destPin);
+
+        this->removeLink(
+            src,
+            srcPin,
+            dest,
+            destPin);
     }
 
     void Manager::_parserLoop(std::ifstream &fs) {
         std::string line;
         nts::ParserStage stage = nts::ParserStage::UNDEFINED;
         while (std::getline(fs, line)) {
-            stage = stageChecker(fs, line, stage);
+            stage = Manager::stageChecker(fs, line, stage);
             if (line.empty() || line[0] == '#')
                 continue;
             switch (stage) {
@@ -186,7 +197,7 @@ namespace nts {
         }
     }
 
-    void _help() {
+    void Manager::_help() {
         if (std::system("pandoc --version > /dev/null 2>&1") != 0) {
             throw CustomError("Usage: ./nanotekspice [file.nts] (flags)");
         }
@@ -197,13 +208,14 @@ namespace nts {
     }
 
     void Manager::parser(int ac, char **av) {
-        if (ac != 2 || std::string(av[1]) == "-h" || std::string(av[1]) == "--help") {
+        if (ac <= 1) throw CustomError("Usage: ./nanotekspice [file.nts] (flags)");
+        if (std::string(av[1]) == "-h" || std::string(av[1]) == "--help") {
             _help();
             exit(0);
         }
         if (std::string(av[1]) == "--run-empty") {
-            this->factory("input", "input1");
-            this->factory("output", "output1");
+            this->createComponent("input", "input1");
+            this->createComponent("output", "output1");
             this->addLink("input1", 1, "output1", 1);
             return;
         }
@@ -219,59 +231,78 @@ namespace nts {
         fs.close();
     }
 
-    void Manager::display() {
-        std::cout << "tick: " << _lastTick << std::endl;
-        std::cout << "input(s):" << std::endl;
-        for (auto &input: _allChip) {
-            if (input.second->getType() != ComponentType::INPUT)
+    void Manager::_displayPrint(const std::string &title, ComponentType type) {
+        std::cout << title << std::endl;
+        for (auto &input: _components) {
+            if (input.second->getType() != type)
                 continue;
             std::cout << "  " << input.first << ": "
-                << ((input.second->compute(1) == nts::Tristate::Undefined)
-                    ? "U" : (input.second->compute(1) == nts::Tristate::True) ? "1" : "0")
-                << std::endl;
-        }
-        std::cout << "output(s):" << std::endl;
-        for (auto &output: _allChip) {
-            if (output.second->getType() != ComponentType::OUTPUT)
-                continue;
-            std::cout << "  " << output.first << ": "
-                << ((output.second->compute(1) == nts::Tristate::Undefined)
-                    ? "U" : (output.second->compute(1) == nts::Tristate::True) ? "1" : "0")
+                << ((input.second->getPins()[1].first == nts::Tristate::Undefined)
+                ? "U" : (input.second->getPins()[1].first == nts::Tristate::True) ? "1" : "0")
                 << std::endl;
         }
     }
 
-    void Manager::_handleCommand(const std::string &line) {
-        if (line == "clear") {
-            #ifdef __unix__
-            system("clear");
-            #endif
-            #ifdef _WIN32
-            throw CustomError("Don't use Windows");
-            #endif
-            return;
-        }
-        if (line == "debug") {
-            this->debug();
-            return;
-        }
-        if (line == "simulate") {
-            this->simulate();
-            return;
-        }
-        if (line == "display") {
+    void Manager::display() {
+        std::cout << "tick: " << _currentTick << std::endl;
+        this->_displayPrint("input(s):", ComponentType::Input);
+        this->_displayPrint("output(s):", ComponentType::Output);
+    }
+
+    void Manager::_loop() {
+        signal(SIGINT, [](int) {
+            std::cout << std::endl; // Prevents the ^C from being printed
+            g_sigintCaught = true;
+        });
+
+        while (!g_sigintCaught) {
+            this->simulate(_currentTick + 1);
             this->display();
-            return;
         }
-        if (line.find("add ") == 0) {
-            std::string command = line.substr(4);
-            this->_stageChipsetHandler(command);
-            return;
-        }
-        if (line.find("link ") == 0) {
-            std::string command = line.substr(5);
-            this->_stageLinksHandler(command);
-            return;
+    }
+
+    void Manager::_handleCommand(const std::string &line) {
+        std::map<std::string, std::function<void()>> commands = {
+                {"clear", [this]() {
+                    #ifdef __unix__
+                    system("clear");
+                    #endif
+                    #ifdef _WIN32
+                    throw CustomError("Use a real operating system");
+                    #endif
+                }},
+                {"loop", [this]() { this->_loop(); }},
+                {"dump", [this]() { this->dump(); }},
+                {"simulate", [this]() { this->simulate(_currentTick + 1); }},
+                {"sm", [this]() { this->simulate(_currentTick + 1); }},
+                {"display", [this]() { this->display(); }},
+                {"ls", [this]() { this->display(); }},
+                {"add ", [this, &line]() {
+                    std::string command = line.substr(4);
+                    this->_stageChipsetHandler(command);
+                }},
+                {"link ", [this, &line]() {
+                    std::string command = line.substr(5);
+                    this->_stageLinksHandler(command);
+                }},
+                {"removeLink ", [this, &line]() {
+                    std::string command = line.substr(11);
+                    this->_stageLinksHandler(command, true);
+                }},
+                {"removeChipset ", [this, &line]() {
+                    std::string command = line.substr(14);
+                    if (_components.find(command) == _components.end()) {
+                        throw CustomError("Component not found: " + command);
+                    }
+                    _components.erase(command);
+                }}
+        };
+
+        for (auto &command : commands) {
+            if (line.find(command.first) == 0) {
+                command.second();
+                return;
+            }
         }
         this->_interpretLine(line);
     }
@@ -287,22 +318,22 @@ namespace nts {
         if (tension != "0" && tension != "1") {
             throw CustomError("Invalid tension: " + tension);
         }
-        if (_allChip.find(target) == _allChip.end()) {
+        if (_components.find(target) == _components.end()) {
             throw CustomError("Unknown component: " + target);
         }
-        if (_allChip[target]->getType() != ComponentType::INPUT) {
+        if (_components[target]->getType() != ComponentType::Input) {
             throw CustomError("Invalid component type: " + target);
         }
-        _allChip[target]->getPin(1).setState(
-                (tension == "1") ? nts::Tristate::True :
-                nts::Tristate::False
-        );
+        _components[target]->setState(1, (tension == "1") ? Tristate::True : False);
     }
 
     void Manager::_checkRun() const {
+        if (_components.empty()) {
+            throw CustomError("No components found");
+        }
         bool hasInput = false;
-        for (auto &component: _allChip) {
-            if (component.second->getType() == ComponentType::INPUT) {
+        for (auto &component: _components) {
+            if (component.second->getType() == ComponentType::Input) {
                 hasInput = true;
                 break;
             }
@@ -311,8 +342,8 @@ namespace nts {
             throw CustomError("No input found");
         }
         bool hasOutput = false;
-        for (auto &component: _allChip) {
-            if (component.second->getType() == ComponentType::OUTPUT) {
+        for (auto &component: _components) {
+            if (component.second->getType() == ComponentType::Output) {
                 hasOutput = true;
                 break;
             }

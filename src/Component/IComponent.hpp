@@ -2,8 +2,11 @@
 
 #include <memory>
 #include <iostream>
+#include <map>
+#include <vector>
+#include <stack>
 
-#include "../Pin/Pin.hpp"
+#include "../../include/Error/Error.hpp"
 
 namespace nts {
     enum Tristate {
@@ -13,21 +16,37 @@ namespace nts {
     };
 
     enum ComponentType {
-        INPUT,
-        OUTPUT,
-        COMPONENT
+        Input = 0,
+        Output = 1,
+        Standard = 2
     };
 
-    class Pin;
     class IComponent {
         public :
             virtual ~IComponent() = default;
             virtual void simulate(std::size_t tick) = 0;
-            virtual nts::Tristate compute(std::size_t pin) = 0;
-            virtual void setLink(std::size_t pin, nts::IComponent &other, std::size_t otherPin) = 0;
-            virtual void reversedLink(std::size_t pin, nts::IComponent &other, std::size_t otherPin) = 0;
-            virtual Pin &getPin(std::size_t pin) = 0;
-            virtual std::map<std::size_t, nts::Pin> getPins() = 0;
-            virtual nts::ComponentType getType() const = 0;
+            virtual nts::Tristate compute (std::size_t pin) = 0;
+            virtual void update(std::size_t tick) = 0;
+            virtual void setLink (
+                std::size_t pin, nts::IComponent& other, std::size_t otherPin) = 0;
+            virtual void removeLink(std::size_t pin) = 0;
+            virtual void dump() const = 0;
+            virtual ComponentType getType() const = 0;
+            virtual std::string getLabel() const = 0;
+            virtual std::map<std::size_t,
+                    std::pair<
+                        Tristate,
+                        std::vector<
+                            std::pair<
+                                std::reference_wrapper<IComponent>,
+                                std::size_t>
+            >>> getPins() const = 0;
+            virtual std::vector<
+                std::pair<
+                        std::reference_wrapper<IComponent>,
+                        std::size_t>
+            > getLinks(std::size_t pin) = 0;
+            virtual void setState(std::size_t pin, Tristate state) = 0;
+            virtual void computeBehaviour(std::size_t tick) = 0;
     };
 }

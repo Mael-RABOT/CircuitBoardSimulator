@@ -28,10 +28,15 @@ The file format is a simple text file with the following format:
 ## Shell commands
 
 - `exit`: Exit the simulator.
-- `display`: Display the current state of the circuit.
-- `simulate`: Simulate the circuit for one tick.
-- `debug`: Display the current state of all the circuit.
 - `clear`: Clear the terminal.
+- `display`, `ls`: Display the current state of the circuit.
+- `simulate`, `sm`: Simulate the circuit for one tick.
+- `loop`: Simulate the circuit until a SIGINT (ctrl+c).
+- `dump`: Display the current state of all the chipsets, pins and links.
+- `add [type] [name]`: Add a new chipset to the circuit.
+- `link [name]:[pin] [name]:[pin]`: Link two pins together.
+- `removeChipset [name]`: Remove a chipset from the circuit.
+- `removeLink [name]:[pin] [name]:[pin]`: Remove a link from the circuit.
 
 Commands can be combined with the `&` character.<br>
 Errors are displayed in red.
