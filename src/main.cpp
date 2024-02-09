@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "Manager/Manager.hpp"
 
 int main(int ac, char **av) {
@@ -9,7 +7,7 @@ int main(int ac, char **av) {
         manager.parser(ac, av);
         manager.run();
     } catch (const nts::CustomError &e) {
-        std::cout << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
     }
     return 0;
 }
