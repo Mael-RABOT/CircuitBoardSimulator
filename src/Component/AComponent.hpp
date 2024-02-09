@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IComponent.hpp"
-#include "../../include/truthTable.hpp"
+#include "../../include/orTruthTable.hpp"
 
 namespace nts {
     class AComponent : public IComponent {

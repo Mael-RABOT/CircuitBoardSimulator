@@ -21,6 +21,9 @@ namespace nts {
                     }
                 }
 
+                if (!_truthTable.size())
+                    throw nts::CustomError("No truth table found for " + _label);
+
                 for (const auto& row : _truthTable) {
                     if (std::equal(inputStates.begin(), inputStates.end(), row.begin())) {
                         _pins[_pins.size()].first = row.back();

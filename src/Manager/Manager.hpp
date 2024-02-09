@@ -7,6 +7,8 @@
 #include <vector>
 #include <functional>
 #include <signal.h>
+#include <filesystem>
+#include <cmath>
 
 #include "../../include/Components.hpp"
 
@@ -22,6 +24,7 @@ namespace nts {
         private:
             std::map<std::string, IComponent *> _components;
             std::size_t _currentTick;
+            std::map<std::string, std::vector<std::vector<nts::Tristate>>> _truthTables;
 
             void _handleCommand(const std::string &line);
             void _interpretLine(const std::string &line);
@@ -64,6 +67,8 @@ namespace nts {
             void simulate() { this->simulate(_currentTick++); };
             void simulate(std::size_t tick);
 
+            void initializeTruthTables(const std::string &folder);
+            void _generateTruthTableFromFile(const std::string &filename);
             static nts::ParserStage stageChecker(std::ifstream &fs, std::string &line, nts::ParserStage &stage);
             void parser(int ac, char **av);
 

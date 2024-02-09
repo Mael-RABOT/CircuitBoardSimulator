@@ -1,0 +1,35 @@
+# AND Truth Table
+.AND
+TTT
+TFF
+TUF
+FTF
+FFF
+FUF
+UTF
+UUF
+UUU
+
+# OR Truth Table
+.OR
+TTT
+TFT
+TUT
+FTT
+FFF
+FUF
+UTT
+UUF
+UUU
+
+# XOR Truth Table
+.XOR
+TTF
+TFT
+TUT
+FTT
+FFF
+FUF
+UTF
+UUF
+UUU

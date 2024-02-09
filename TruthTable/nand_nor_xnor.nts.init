@@ -1,0 +1,35 @@
+# NAND Truth Table
+.NAND
+TTF
+TFT
+TTT
+FTT
+FTF
+FTU
+UTT
+UTF
+UTU
+
+# XNOR Truth Table
+.XNOR
+TTT
+TFF
+TUT
+FTF
+FTT
+FUT
+UTF
+UFT
+UUU
+
+# NOR Truth Table
+.NOR
+TFF
+FTF
+UTF
+FTT
+FFF
+FUT
+UTT
+UFT
+UUU

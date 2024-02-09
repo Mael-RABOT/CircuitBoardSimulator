@@ -4,6 +4,8 @@ namespace nts {
 
     bool g_sigintCaught = false;
 
+    /* Component management */
+
     bool Manager::createComponent(const std::string &type, const std::string &label) {
         return this->_factory(type, label);
     }
@@ -18,12 +20,18 @@ namespace nts {
     }
 
     bool Manager::_factory(const std::string &type, const std::string &label) {
-        std::map<std::string, std::pair<int, std::vector<std::vector<nts::Tristate>>>> logicGateTypes = {
-                {"and", {3, nts::AND_TRUTH_TABLE}},
-                {"or", {3, nts::OR_TRUTH_TABLE}},
-                {"xor", {3, nts::XOR_TRUTH_TABLE}},
-                {"not", {2, nts::NOT_TRUTH_TABLE}},
-                {"nand", {3, nts::NAND_TRUTH_TABLE}}
+        std::function<std::string(std::string)> toUpperCase = [](std::string str) {
+            std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+            return str;
+        };
+        std::vector<std::string> logicGates = {
+                "and",
+                "or",
+                "xor",
+                "not",
+                "nand",
+                "nor",
+                "xnor"
         };
 
         std::map<std::string, std::function<IComponent*(const std::string&)>> special = {
@@ -37,8 +45,15 @@ namespace nts {
         if (special.find(type) != special.end()) {
             return this->_addComponent(label, special[type](label));
         }
-        if (logicGateTypes.find(type) != logicGateTypes.end()) {
-            return this->_addComponent(label, new LogicGate(logicGateTypes[type].first, label, ComponentType::Standard, logicGateTypes[type].second));
+        if (!_truthTables[toUpperCase(type)].size()) {
+            throw CustomError("No truth table found for " + type + " during creation.");
+        }
+        if (std::find(logicGates.begin(), logicGates.end(), type) != logicGates.end()) {
+            std::string truthTable;
+            for (const char &c : type) {
+                truthTable += std::toupper(c);
+            }
+            return this->_addComponent(label, new LogicGate(3, label, ComponentType::Standard, this->_truthTables[toUpperCase(truthTable)]));
         }
         throw CustomError("Invalid component type: " + type);
     }
@@ -65,6 +80,8 @@ namespace nts {
         _components[dest]->removeLink(otherPin);
     }
 
+    /* Debug */
+
     void Manager::_dumpPrint(const std::string &title, ComponentType type) {
         std::cout << title << std::endl;
         for (auto &input : _components) {
@@ -87,6 +104,8 @@ namespace nts {
         }
     }
 
+    /* Simulation */
+
     void Manager::simulate(std::size_t tick) {
         _currentTick = tick;
         for (auto &output : _components) {
@@ -102,6 +121,8 @@ namespace nts {
                 output.second->computeBehaviour(tick);
         }
     }
+
+    /* Parser */
 
     nts::ParserStage Manager::stageChecker(std::ifstream &fs, std::string &line, nts::ParserStage &stage) {
         nts::ParserStage newStage = nts::ParserStage::UNCHANGED;
@@ -197,6 +218,69 @@ namespace nts {
         }
     }
 
+    void Manager::initializeTruthTables(const std::string &folder) {
+        if (!std::filesystem::exists(folder)) {
+            throw CustomError("Directory does not exist: " + folder);
+        }
+
+        for (const auto &entry : std::filesystem::directory_iterator(folder)) {
+            if (entry.path().string().rfind(".nts.init") == entry.path().string().size() - 9) {
+                this->_generateTruthTableFromFile(entry.path());
+            }
+        }
+    }
+
+    void Manager::_generateTruthTableFromFile(const std::string &filename) {
+        std::ifstream fs(filename);
+        if (!fs.is_open()) {
+            throw CustomError("Could not open file: " + filename);
+        }
+
+        std::string currentName;
+        std::vector<std::vector<nts::Tristate>> currentTable;
+
+        std::string line;
+        while (std::getline(fs, line)) {
+            if (line[0] == '#') {
+                continue;
+            }
+
+            if (line[0] == '.') {
+                if (!currentName.empty()) {
+                    _truthTables[currentName] = currentTable;
+                    currentTable.clear();
+                }
+                currentName = line.substr(1);
+            } else {
+                std::vector<nts::Tristate> row;
+                for (char c : line) {
+                    switch (c) {
+                        case 'F':
+                            row.push_back(nts::Tristate::False);
+                            break;
+                        case 'T':
+                            row.push_back(nts::Tristate::True);
+                            break;
+                        case 'U':
+                            row.push_back(nts::Tristate::Undefined);
+                            break;
+                        default:
+                            throw CustomError("Invalid character in truth table: " + std::string(1, c));
+                    }
+                }
+                currentTable.push_back(row);
+            }
+        }
+
+        if (!currentName.empty()) {
+            _truthTables[currentName] = currentTable;
+        }
+
+        fs.close();
+    }
+
+    /* Commands */
+
     void Manager::_help() {
         if (std::system("pandoc --version > /dev/null 2>&1") != 0) {
             throw CustomError("Usage: ./nanotekspice [file.nts] (flags)");
@@ -218,6 +302,12 @@ namespace nts {
             this->createComponent("output", "output1");
             this->addLink("input1", 1, "output1", 1);
             return;
+        }
+        for (int i = 1; i < ac; i++) {
+            if (std::string(av[i]) == "--tabledir" && i + 1 < ac) {
+                this->initializeTruthTables(av[i + 1]);
+                i++;
+            }
         }
         const char* extension = strrchr(av[1], '.');
         if (extension == nullptr || strcmp(extension, ".nts") != 0) {
@@ -260,6 +350,8 @@ namespace nts {
             this->display();
         }
     }
+
+    /* Execution Loop */
 
     void Manager::_handleCommand(const std::string &line) {
         std::map<std::string, std::function<void()>> commands = {
