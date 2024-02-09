@@ -47,7 +47,7 @@ namespace nts {
 
         public:
             Manager() : _currentTick(0) {};
-            ~Manager() = default;
+            ~Manager();
 
             bool createComponent(const std::string &type, const std::string &label);
 

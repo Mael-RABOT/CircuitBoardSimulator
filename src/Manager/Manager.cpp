@@ -4,6 +4,12 @@ namespace nts {
 
     bool g_sigintCaught = false;
 
+    Manager::~Manager() {
+        for (auto &component : _components) {
+            delete component.second;
+        }
+    }
+
     /* Component management */
 
     bool Manager::createComponent(const std::string &type, const std::string &label) {
