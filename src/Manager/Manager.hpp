@@ -4,6 +4,11 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include <vector>
+#include <functional>
+#include <signal.h>
+#include <filesystem>
+#include <cmath>
 
 #include "../../include/Components.hpp"
 
@@ -17,45 +22,55 @@ namespace nts {
 
     class Manager {
         private:
-            std::map<std::string, IComponent *> _allChip;
-            std::size_t _lastTick;
+            std::map<std::string, IComponent *> _components;
+            std::size_t _currentTick;
+            std::map<std::string, std::vector<std::vector<nts::Tristate>>> _truthTables;
 
             void _handleCommand(const std::string &line);
             void _interpretLine(const std::string &line);
 
             void _stageChipsetHandler(const std::string &line);
-            void _stageLinksHandler(const std::string &line);
+            void _stageLinksHandler(const std::string &line, bool remove = false);
             void _parserLoop(std::ifstream &fs);
 
             void _checkRun() const;
+            bool _addComponent(const std::string &label, IComponent *component);
+            bool _factory(
+                    const std::string &type,
+                    const std::string &label);
+
+            void _displayPrint(const std::string &title, ComponentType type);
+            void _dumpPrint(const std::string &title, ComponentType type);
+            static void _help();
+
+            void _loop();
 
         public:
-            Manager() : _lastTick(0) {};
+            Manager() : _currentTick(0) {};
             ~Manager();
 
-            bool addComponent(const std::string &label, IComponent *component);
-            bool factory(
-                const std::string &type,
-                const std::string &label);
+            bool createComponent(const std::string &type, const std::string &label);
 
             void addLink(
-                    const std::string &source,
-                    std::size_t sourcePin,
-                    const std::string &dest,
-                    std::size_t otherPin);
+                const std::string &source,
+                std::size_t sourcePin,
+                const std::string &dest,
+                std::size_t otherPin);
+            void removeLink(
+                const std::string &source,
+                std::size_t sourcePin,
+                const std::string &dest,
+                std::size_t otherPin);
 
-            void debug(bool = true, bool = true, bool = true) const;
+            void dump(bool = true, bool = true, bool = true);
 
-            void simulate() { this->simulate(_lastTick + 1); };
+            void simulate() { this->simulate(_currentTick++); };
             void simulate(std::size_t tick);
 
+            void initializeTruthTables(const std::string &folder);
+            void _generateTruthTableFromFile(const std::string &filename);
+            static nts::ParserStage stageChecker(std::ifstream &fs, std::string &line, nts::ParserStage &stage);
             void parser(int ac, char **av);
-
-            IComponent *getComponent(const std::string &label) {
-                if (_allChip.find(label) != _allChip.end())
-                    return _allChip[label];
-                throw CustomError("Unknown component: " + label);
-            };
 
             void display();
             void run();
