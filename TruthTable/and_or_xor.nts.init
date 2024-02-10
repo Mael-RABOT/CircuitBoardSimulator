@@ -1,5 +1,8 @@
 # AND Truth Table
-.AND
+.LABEL:AND
+.PINNB:3
+.INPUT:1,2
+.OUTPUT:3
 TTT
 TFF
 TUF
@@ -11,7 +14,10 @@ UUF
 UUU
 
 # OR Truth Table
-.OR
+.LABEL:OR
+.PINNB:3
+.INPUT:1,2
+.OUTPUT:3
 TTT
 TFT
 TUT
@@ -23,7 +29,10 @@ UUF
 UUU
 
 # XOR Truth Table
-.XOR
+.LABEL:XOR
+.PINNB:3
+.INPUT:1,2
+.OUTPUT:3
 TTF
 TFT
 TUT

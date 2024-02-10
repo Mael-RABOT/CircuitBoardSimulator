@@ -37,7 +37,8 @@ namespace nts {
                 "not",
                 "nand",
                 "nor",
-                "xnor"
+                "xnor",
+                "4071"
         };
 
         std::map<std::string, std::function<IComponent*(const std::string&)>> special = {
@@ -51,17 +52,19 @@ namespace nts {
         if (special.find(type) != special.end()) {
             return this->_addComponent(label, special[type](label));
         }
-        if (!_truthTables[toUpperCase(type)].size()) {
+        if (_componentTruthTables.find(toUpperCase(type)) == _componentTruthTables.end()) {
             throw CustomError("No truth table found for " + type + " during creation.");
         }
-        if (std::find(logicGates.begin(), logicGates.end(), type) != logicGates.end()) {
-            std::string truthTable;
-            for (const char &c : type) {
-                truthTable += std::toupper(c);
-            }
-            return this->_addComponent(label, new LogicGate(3, label, ComponentType::Standard, this->_truthTables[toUpperCase(truthTable)]));
-        }
-        throw CustomError("Invalid component type: " + type);
+        return this->_addComponent(
+                label,
+                new Chipset(
+                        std::get<0>(_componentTruthTables[toUpperCase(type)]), // pinNb
+                        label,
+                        ComponentType::Standard,
+                        std::get<3>(_componentTruthTables[toUpperCase(type)]), // truth table
+                        std::get<1>(_componentTruthTables[toUpperCase(type)]), // input pins
+                        std::get<2>(_componentTruthTables[toUpperCase(type)]))); // output pins
+
     }
 
     void Manager::addLink(
@@ -97,7 +100,7 @@ namespace nts {
         }
     }
 
-    void Manager::dump(bool inputs, bool components, bool outputs) {
+    void Manager::dump(bool inputs, bool components, bool outputs, bool truthTables) {
         std::cout << "tick: " << _currentTick << std::endl;
         if (inputs) {
             this->_dumpPrint("Inputs: ", ComponentType::Input);
@@ -107,6 +110,29 @@ namespace nts {
         }
         if (outputs) {
             this->_dumpPrint("Output: ", ComponentType::Output);
+        }
+        if (!truthTables)
+            return;
+        for (auto &[key, vale] : _componentTruthTables) {
+            std::cout << "Truth table for " << key << std::endl;
+            std::cout << "  PinNb: " << std::get<0>(vale) << std::endl;
+            std::cout << "  Input pins: ";
+            for (auto &input : std::get<1>(vale)) {
+                std::cout << input << " ";
+            }
+            std::cout << std::endl;
+            std::cout << "  Output pins: ";
+            for (auto &output : std::get<2>(vale)) {
+                std::cout << output << " ";
+            }
+            std::cout << std::endl;
+            std::cout << "  Truth table: " << std::endl;
+            for (auto &row : std::get<3>(vale)) {
+                for (auto &tristate : row) {
+                    std::cout << (tristate == Tristate::True ? "T" : (tristate == Tristate::False ? "F" : "U"));
+                }
+                std::cout << std::endl;
+            }
         }
     }
 
@@ -243,20 +269,55 @@ namespace nts {
         }
 
         std::string currentName;
+        std::size_t pinNb;
+        std::vector<std::size_t> inputPins, outputPins;
         std::vector<std::vector<nts::Tristate>> currentTable;
+        std::vector<std::string> forbiddenLabel = {
+                "INPUT",
+                "OUTPUT",
+                "CLOCK",
+                "TRUE",
+                "FALSE",
+                "RAM",
+                "ROM",
+                "JOHNSON"
+        };
 
         std::string line;
         while (std::getline(fs, line)) {
-            if (line[0] == '#') {
+            if (line.empty() || line[0] == '#') {
                 continue;
             }
 
-            if (line[0] == '.') {
+            if (line.find(".LABEL:") == 0) {
+                // Parse label
+                if (std::find(forbiddenLabel.begin(), forbiddenLabel.end(), line.substr(7)) != forbiddenLabel.end()) {
+                    throw CustomError("Forbidden label: " + line.substr(7));
+                }
                 if (!currentName.empty()) {
-                    _truthTables[currentName] = currentTable;
+                    _componentTruthTables[currentName] = std::make_tuple(pinNb, inputPins, outputPins, currentTable);
+                    inputPins.clear();
+                    outputPins.clear();
                     currentTable.clear();
                 }
-                currentName = line.substr(1);
+                currentName = line.substr(7);
+            } else if (line.find(".PINNB:") == 0) {
+                // Parse pin number
+                pinNb = std::stoi(line.substr(7));
+            } else if (line.find(".INPUT:") == 0) {
+                // Parse input pins
+                std::istringstream iss(line.substr(7));
+                std::size_t pin;
+                while (iss >> pin) {
+                    inputPins.push_back(pin);
+                }
+            } else if (line.find(".OUTPUT:") == 0) {
+                // Parse output pins
+                std::istringstream iss(line.substr(8));
+                std::size_t pin;
+                while (iss >> pin) {
+                    outputPins.push_back(pin);
+                }
             } else {
                 std::vector<nts::Tristate> row;
                 for (char c : line) {
@@ -270,6 +331,9 @@ namespace nts {
                         case 'U':
                             row.push_back(nts::Tristate::Undefined);
                             break;
+                        case 'X':
+                            row.push_back(nts::Tristate::X);
+                            break;
                         default:
                             throw CustomError("Invalid character in truth table: " + std::string(1, c));
                     }
@@ -279,7 +343,7 @@ namespace nts {
         }
 
         if (!currentName.empty()) {
-            _truthTables[currentName] = currentTable;
+            _componentTruthTables[currentName] = std::make_tuple(pinNb, inputPins, outputPins, currentTable);
         }
 
         fs.close();
