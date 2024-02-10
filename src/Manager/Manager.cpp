@@ -30,16 +30,6 @@ namespace nts {
             std::transform(str.begin(), str.end(), str.begin(), ::toupper);
             return str;
         };
-        std::vector<std::string> logicGates = {
-                "and",
-                "or",
-                "xor",
-                "not",
-                "nand",
-                "nor",
-                "xnor",
-                "4071"
-        };
 
         std::map<std::string, std::function<IComponent*(const std::string&)>> special = {
                 {"input", [](const std::string &label) { return new InputComp(label); }},
