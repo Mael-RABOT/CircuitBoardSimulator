@@ -1,5 +1,6 @@
 #pragma once
 
-#include "../src/Component/Simple/LogicGate.hpp"
-#include "../src/Component/Simple/Clock.hpp"
-#include "../src/Component/Simple/Constant.hpp"
+#include "../src/Component/Special/InputOutput.hpp"
+#include "../src/Component/Special/Clock.hpp"
+#include "../src/Component/Special/Constant.hpp"
+#include "../src/Component/Chipset.hpp"

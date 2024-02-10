@@ -34,52 +34,85 @@ The file format is a simple text file with the following format:
 The file format is a simple text file with the following format:
 
     #comment
-    .[NAME]
+    .LABEL:[NAME]
+    .PINNB:[NUMBER]
+    .INPUT:[PIN1,PIN2,...]
+    .OUTPUT:[PIN1,PIN2,...]
     [VALUE][VALUE][...]
     [VALUE][VALUE][...]
     [...]
 
-- `[NAME]` is the name of the chipset. the name must be in capital letters.
-- `[VALUE]` is the value of the pin. The value can be `T` (true), `F` (false), `U` (undefined).
+- `[NAME]` is the name of the chipset. The name must be in capital letters.
+- `[NUMBER]` is the number of pins for the component.
+- `[PIN1,PIN2,...]` is a comma-separated list of pin numbers for the input or output pins.
+- `[VALUE]` is the value of the pin. The value can be `T` (true), `F` (false), `U` (undefined), or `X` (don't care).
 
-The truth table must be in the same order as the pins in the chipset. (will be changed in the future to be more flexible)
+The order of .LABEL, .PINNB, .INPUT and .OUTPUT cannot be changed.<br>
+Adding extra pin in the .INPUT or .OUTPUT line will result in undefined behavior.<br>
+Giving less .PINNB than the actual number of pins will result in undefined behavior.
 
-The truth table must describe every possible combination of the pins, including undefined states.
+The values of the pin are to define in the correct order, with all the input pins first, then the output pins.<br>
+The example below show the truth table of a 4071 chip, with 8 inputs and 4 outputs.<br>
+Even if the real chip has 14 pins, since this simulation do not handle Vdd and Vss, the file only describe the 12 pins that are used.
 
-ATM, only the file extension and the pin VALUE are checked, the file format is not checked. Missing or extra lines will result in undefined behavior.
+The truth table must describe every possible combination of the pins, including undefined and "don't care" values.
 
-It is possible to describe multiple truth tables in the same file.   
+ATM, only the file extension and the pin VALUE are checked, the file format **is not** checked.<br>
+Missing or extra lines will result in undefined behavior.
+
+It is possible to describe multiple truth tables in the same file.
 
 User defined truth table are loaded last, which let the user override the standard truth table.<br>Note that the truth tables used internally cannot be overridden.
-
 <details>
   <summary>e.g.</summary>
 
-    # AND Truth Table
-    .AND
-    TTT
-    TFF
-    TUF
-    FTF
-    FFF
-    FUF
-    UTF
-    UUF
-    UUU
-
-    # OR Truth Table
-    .OR
-    TTT
-    TFT
-    TUT
-    FTT
-    FFF
-    FUF
-    UTT
-    UUF
-    UUU
+    # 4071 Truth Table
+    .LABEL:4071
+    .PINNB:12
+    .INPUT:1,2,5,6,8,9,12,13
+    .OUTPUT:3,4,10,11
+    TTXXXXXX TXXX
+    TFXXXXXXTXXX
+    TUXXXXXXTXXX
+    FTXXXXXXTXXX
+    FFXXXXXXFXXX
+    FUXXXXXXFXXX
+    UTXXXXXXTXXX
+    UUXXXXXXFXXX
+    UUXXXXXXUXXX
+    XXTTXXXXXTXX
+    XXTFXXXXXTXX
+    XXTUXXXXXTXX
+    XXFTXXXXXTXX
+    XXFFXXXXXFXX
+    XXFUXXXXXFXX
+    XXUTXXXXXTXX
+    XXUUXXXXXFXX
+    XXUUXXXXXUXX
+    XXXXTTXXXXTX
+    XXXXTFXXXXTX
+    XXXXTUXXXXTX
+    XXXXFTXXXXTX
+    XXXXFFXXXXFX
+    XXXXFUXXXXFX
+    XXXXUTXXXXTX
+    XXXXUUXXXXFX
+    XXXXUUXXXXUX
+    XXXXXXTTXXXT
+    XXXXXXTFXXXT
+    XXXXXXTUXXXT
+    XXXXXXFTXXXT
+    XXXXXXFFXXXF
+    XXXXXXFUXXXF
+    XXXXXXUTXXXT
+    XXXXXXUUXXXF
+    XXXXXXUUXXXU
 
 </details>
+
+Some components need special behavior: clock, input, output, ram, etc.<br>
+Thoses components **aren't** described in the .nts.init file, and are handled by the simulator.
+If one of those components is found in the .nts file, the simulator will throw an error.
 
 ## Shell commands
 

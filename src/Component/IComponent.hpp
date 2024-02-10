@@ -12,7 +12,8 @@ namespace nts {
     enum Tristate {
         Undefined = (-true),
         True = true,
-        False = false
+        False = false,
+        X = 2 // Defined value not used during computation
     };
 
     enum ComponentType {

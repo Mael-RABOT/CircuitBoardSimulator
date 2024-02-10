@@ -24,7 +24,15 @@ namespace nts {
         private:
             std::map<std::string, IComponent *> _components;
             std::size_t _currentTick;
-            std::map<std::string, std::vector<std::vector<nts::Tristate>>> _truthTables;
+
+            std::map<
+                std::string, // label
+                std::tuple<
+                    std::size_t, // pinNb
+                    std::vector<std::size_t>, // input pins
+                    std::vector<std::size_t>, // output pins
+                    std::vector<std::vector<nts::Tristate> // truth table
+            >>> _componentTruthTables;
 
             void _handleCommand(const std::string &line);
             void _interpretLine(const std::string &line);
@@ -62,7 +70,7 @@ namespace nts {
                 const std::string &dest,
                 std::size_t otherPin);
 
-            void dump(bool = true, bool = true, bool = true);
+            void dump(bool = true, bool = true, bool = true, bool = false);
 
             void simulate() { this->simulate(_currentTick++); };
             void simulate(std::size_t tick);
