@@ -8,9 +8,9 @@ TFF
 TUF
 FTF
 FFF
-FUF
+FUU
 UTF
-UUF
+UFU
 UUU
 
 # OR Truth Table
@@ -23,9 +23,9 @@ TFT
 TUT
 FTT
 FFF
-FUF
+FUU
 UTT
-UUF
+UFU
 UUU
 
 # XOR Truth Table
@@ -38,7 +38,7 @@ TFT
 TUT
 FTT
 FFF
-FUF
+FUU
 UTF
-UUF
+UFU
 UUU

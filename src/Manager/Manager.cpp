@@ -275,7 +275,7 @@ namespace nts {
 
         std::string line;
         while (std::getline(fs, line)) {
-            if (line.empty() || line[0] == '#') {
+            if (line.empty() || line[0] == '#' || line[0] == '\n' || line[0] == '\r') {
                 continue;
             }
 
@@ -324,8 +324,10 @@ namespace nts {
                         case 'X':
                             row.push_back(nts::Tristate::X);
                             break;
+                        case '\r': // Ignore carriage return for Windows compatibility
+                            break;
                         default:
-                            throw CustomError("Invalid character in truth table: " + std::string(1, c));
+                            throw CustomError("Invalid character in file `" + filename + "`: `" + std::string(1, c) + "`");
                     }
                 }
                 currentTable.push_back(row);
