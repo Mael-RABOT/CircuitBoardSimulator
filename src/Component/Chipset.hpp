@@ -20,7 +20,7 @@ namespace nts {
             ) : AComponent(pinNb, label, type),
                 _inputPins(inputPins), _outputPins(outputPins), _truthTable(truthTable) {};
 
-            void computeBehaviour(std::size_t tick) {
+            void computeBehaviour(std::size_t tick) override {
                 _lastTick = tick;
                 this->update(tick);
                 std::vector<nts::Tristate> inputStates;
