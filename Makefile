@@ -7,6 +7,7 @@ CFLAGS	= -std=c++20 -Wall -Wextra
 V_FLAG  = --leak-check=full --show-leak-kinds=all --track-origins=yes
 EXE		= nanotekspice
 SAN		= -g3
+TEST_SCRIPT = ./test/tester.sh
 
 all:	$(EXE)
 
@@ -15,6 +16,9 @@ all:	$(EXE)
 
 $(EXE): $(OBJ)
 		$(CXX) -o $(EXE) $^
+
+test: re
+		@$(TEST_SCRIPT)
 
 clean:
 		@rm -rf $(OBJ)
