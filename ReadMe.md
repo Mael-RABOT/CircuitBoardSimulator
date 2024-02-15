@@ -2,8 +2,8 @@
 
 ## Project overview
 
-NanoTekSpice is a logic simulator that can parse and simulate a circuit described in a file.
-A shell interface is available to interact with the simulator.
+NanoTekSpice is a logic simulator that can parse and simulate a circuit described in a file.<br>
+A shell interface is available to interact with the simulator (see [Shell commands](#shell-commands)).
 
 ## Usage
 
@@ -12,8 +12,10 @@ A shell interface is available to interact with the simulator.
 ### Flags
 
 - `-h` or `--help`: Display the help message.
-- `--run-empty` : launch the simulation with only one input and one output.
-- `--table-dir [dir]` : generate the truth tables of the circuit from a user defined directory. The directory must containt .nts.init file, format explained below. Standard truth table are still generated with this flag.
+- `--run-empty` : launch the simulation with only one input and one output.<br>
+If this flag is used, the program will not load the input file, and the user will have to add the chipsets and links manually.
+- `--table-dir [dir]` : generate (or override) truth tables from a user defined directory.<br>
+The directory must containt .nts.init file, [format](#nts-file-format) explained below. Standard truth table are still generated with this flag, more information in the [Loading order](#loading-order) section.
 
 ## `.nts` File format
 
@@ -48,12 +50,11 @@ The file format is a simple text file with the following format:
 - `[VALUE]` is the value of the pin. The value can be `T` (true), `F` (false), `U` (undefined), or `X` (don't care).
 
 The order of .LABEL, .PINNB, .INPUT and .OUTPUT cannot be changed.<br>
-Adding extra pin in the .INPUT or .OUTPUT line will result in undefined behavior.<br>
-Giving less .PINNB than the actual number of pins will result in undefined behavior.
+Giving less .PINNB than the actual number of pins **will result in undefined behavior**.
 
 The values of the pin are to define in the correct order, with all the input pins first, then the output pins.<br>
-The example below show the truth table of a 4071 chip, with 8 inputs and 4 outputs.<br>
-Even if the real chip has 14 pins, since this simulation do not handle Vdd and Vss, the file only describe the 12 pins that are used.
+The example below show the truth table of a AND Gate, with 2 inputs and 1 output.<br>
+**Note:** *the simulation does not handle Vdd and Vss pins.*
 
 The truth table must describe every possible combination of the pins, including undefined and "don't care" values.
 
@@ -66,47 +67,20 @@ User defined truth table are loaded last, which let the user override the standa
 <details>
   <summary>e.g.</summary>
 
-    # 4071 Truth Table
-    .LABEL:4071
-    .PINNB:12
-    .INPUT:1,2,5,6,8,9,12,13
-    .OUTPUT:3,4,10,11
-    TTXXXXXX TXXX
-    TFXXXXXXTXXX
-    TUXXXXXXTXXX
-    FTXXXXXXTXXX
-    FFXXXXXXFXXX
-    FUXXXXXXFXXX
-    UTXXXXXXTXXX
-    UUXXXXXXFXXX
-    UUXXXXXXUXXX
-    XXTTXXXXXTXX
-    XXTFXXXXXTXX
-    XXTUXXXXXTXX
-    XXFTXXXXXTXX
-    XXFFXXXXXFXX
-    XXFUXXXXXFXX
-    XXUTXXXXXTXX
-    XXUUXXXXXFXX
-    XXUUXXXXXUXX
-    XXXXTTXXXXTX
-    XXXXTFXXXXTX
-    XXXXTUXXXXTX
-    XXXXFTXXXXTX
-    XXXXFFXXXXFX
-    XXXXFUXXXXFX
-    XXXXUTXXXXTX
-    XXXXUUXXXXFX
-    XXXXUUXXXXUX
-    XXXXXXTTXXXT
-    XXXXXXTFXXXT
-    XXXXXXTUXXXT
-    XXXXXXFTXXXT
-    XXXXXXFFXXXF
-    XXXXXXFUXXXF
-    XXXXXXUTXXXT
-    XXXXXXUUXXXF
-    XXXXXXUUXXXU
+    # AND Truth Table
+    .LABEL:AND
+    .PINNB:3
+    .INPUT:1,2
+    .OUTPUT:3
+    TTT
+    TFF
+    TUF
+    FTF
+    FFF
+    FUU
+    UTF
+    UFU
+    UUU
 
 </details>
 
@@ -114,22 +88,78 @@ Some components need special behavior: clock, input, output, ram, etc.<br>
 Thoses components **aren't** described in the .nts.init file, and are handled by the simulator.
 If one of those components is found in the .nts file, the simulator will throw an error.
 
+## `.nts.config` File format
+
+The file format is a simple text file with the following format:
+
+    [GATE_NAME]
+    PinNb [NUMBER]
+    componentsData
+    [COMPONENT_NAME] [TYPE] [TRUTH_TABLE]
+    [COMPONENT_NAME] [TYPE] [TRUTH_TABLE]
+    [...]
+    end
+    pinRefTable
+    [PIN] [COMPONENT_NAME] [COMPONENT_PIN]
+    [PIN] [COMPONENT_NAME] [COMPONENT_PIN]
+    [...]
+    end
+
+#### Gate description:
+
+- [GATE_NAME] is the name of the gate.<br>
+- [NUMBER] is the number of pins for the gate.<br>
+
+#### Internal components description:
+
+- [COMPONENT_NAME] is the name of an internal component.<br>
+- [TYPE] is the type of the internal component. (Input, Standard, Output)<br>
+*It is not recommended to use the type "Input" or "Output" for internal components.*
+- [TRUTH_TABLE] is the truth table of the internal component.<br>
+Thoses truth tables are the ones described in the .nts.init file.
+- end is used to mark the end of the internal components' description.
+
+#### Pin reference table:
+
+- [PIN] is the pin number of the gate.<br>
+- [COMPONENT_NAME] is the name of the internal component.<br>
+- [COMPONENT_PIN] is the pin number of the internal component.<br>
+- end is used to mark the end of the pin reference table.
+
+The .nts.config file is used to describe a custom gate, with internal components and pin reference table.<br>
+
+It is not mandatory to connect all the pins of the internal components.
+
+The format of the .nts.config file is not checked. Missing or extra lines **will result in undefined behavior**.
+
+If a custom Truth Table is loaded with `--table-dir`, it is possible to use it in the .nts.config file.
+
+**Note:** *The three files format purposely do not have the same format, to avoid confusion between the files.*
+
+## Loading order
+
+- The standard truth tables are loaded first.
+- The user defined truth tables are loaded second.
+- The .nts.config files are loaded last.
+
+Overriding a standard truth table with a user defined truth table will result in the user defined truth table being used.<br>
+Gates will also use the user defined truth table if one is found.
+
 ## Shell commands
 
-- `exit`: Exit the simulator.
-- `clear`: Clear the terminal.
-- `display`, `ls`: Display the current state of the circuit.
-- `simulate`, `sm`: Simulate the circuit for one tick.
-- `loop`: Simulate the circuit until a SIGINT (ctrl+c).
-- `dump`: Display the current state of all the chipsets, pins and links.
-- `add [type] [name]`: Add a new chipset to the circuit.
-- `link [name]:[pin] [name]:[pin]`: Link two pins together.
-- `removeChipset [name]`: Remove a chipset from the circuit.
-- `removeLink [name]:[pin] [name]:[pin]`: Remove a link from the circuit.
+- `exit`                                  : Exit the simulator.
+- `help`                                  : Display the help message.
+- `clear`                                 : Clear the terminal.
+- `display`, `ls`                         : Display the current state of the circuit.
+- `simulate`, `sm`                        : Simulate the circuit for one tick.
+- `loop`                                  : Simulate the circuit until a SIGINT (ctrl+c).
+- `dump`                                  : Display the current state of all the chipsets, pins and links.
+- `add [type] [name]`                     : Add a new chipset to the circuit.
+- `link [name]:[pin] [name]:[pin]`        : Link two pins together.
+- `removeChipset [name]`                  : Remove a chipset from the circuit.
+- `removeLink [name]:[pin] [name]:[pin]`  : Remove a link from the circuit.
 
-Commands can be combined with the `&` character.<br>
-Errors are displayed in red.
-
+Commands can be combined with the `&` character.
 ## Architecture
 
 <details>
@@ -171,5 +201,10 @@ The `CustomError` class is used to handle custom exceptions in the application. 
 
 ## Author
 
+This project was carried out with the heart by:
+
 - [**Charles MEDJERI**](https://www.linkedin.com/in/charles-madjeri/)
 - [**Maël RABOT**](https://www.linkedin.com/in/mael-rabot/)
+
+As second year IT students, we discovered the C++ language and the OOP paradigm with this project.<br>
+We are proud of the result and we hope you will enjoy it as much as we do.

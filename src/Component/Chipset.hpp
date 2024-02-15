@@ -18,9 +18,13 @@ namespace nts {
                 std::vector<std::size_t> inputPins,
                 std::vector<std::size_t> outputPins
             ) : AComponent(pinNb, label, type),
-                _inputPins(inputPins), _outputPins(outputPins), _truthTable(truthTable) {};
+                _inputPins(inputPins), _outputPins(outputPins), _truthTable(truthTable) {
+            };
 
             void computeBehaviour(std::size_t tick) override {
+                bool inputLinkFound = false;
+                if (tick <= _lastTick)
+                    return;
                 _lastTick = tick;
                 this->update(tick);
                 std::vector<nts::Tristate> inputStates;
@@ -28,7 +32,12 @@ namespace nts {
                 for (std::size_t i : _inputPins) {
                     for (auto link : _pins[i].second) {
                         inputStates.push_back(link.first.get().getPins()[link.second].first);
+                        inputLinkFound = true;
                     }
+                }
+
+                if (!inputLinkFound) {
+                    return;
                 }
 
                 if (!_truthTable.size())

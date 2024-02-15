@@ -67,10 +67,19 @@ namespace nts {
     void AComponent::dump() const {
         std::cout << _label << " has " << _pins.size() << " pins" << std::endl;
         for (const auto &[pin, _] : _pins) {
-            std::cout << "    - Pin " << pin << " has state: "
-                << (_pins.at(pin).first == nts::Tristate::True ? "True" :
-                    _pins.at(pin).first == nts::Tristate::False ? "False" : "Undefined")
-                << std::endl;
+            std::cout << "    - Pin " << pin << " has state: ";
+            switch (_pins.at(pin).first) {
+                case nts::Tristate::True:
+                    std::cout << "\033[32mTrue\033[0m";
+                    break;
+                case nts::Tristate::False:
+                    std::cout << "\033[31mFalse\033[0m";
+                    break;
+                default:
+                    std::cout << "\033[33mUndefined\033[0m";
+                    break;
+            }
+            std::cout << std::endl;
             std::cout << "     - Pin " << pin << " is linked to: ";
             for (const auto &[component, componentPin] : _pins.at(pin).second) {
                 std::cout << component.get().getLabel() << ":" << componentPin << " ";

@@ -33,6 +33,7 @@ namespace nts {
                     std::vector<std::size_t>, // output pins
                     std::vector<std::vector<nts::Tristate> // truth table
             >>> _componentTruthTables;
+            std::map<std::string, std::function<IComponent*(const std::string&)>> _gates; // Gates factory
 
             void _handleCommand(const std::string &line);
             void _interpretLine(const std::string &line);
@@ -50,6 +51,7 @@ namespace nts {
             void _displayPrint(const std::string &title, ComponentType type);
             void _dumpPrint(const std::string &title, ComponentType type);
             static void _help();
+            static void _commandHelp();
 
             void _loop();
 
@@ -77,7 +79,11 @@ namespace nts {
 
             void initializeTruthTables(const std::string &folder);
             void _generateTruthTableFromFile(const std::string &filename);
+            void initGates(const std::string &folder);
+            void _parseGateConfig(const std::string& filename);
+
             static nts::ParserStage stageChecker(std::ifstream &fs, std::string &line, nts::ParserStage &stage);
+            void preParse(int ac, char **av);
             void parser(int ac, char **av);
 
             void display();
