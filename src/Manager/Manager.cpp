@@ -41,39 +41,9 @@ namespace nts {
                 {"false", [](const std::string &label) { return new FalseConst(label); }}
         };
 
-        std::map<std::string, std::function<IComponent*(const std::string&)>> gates = {
-                {"4071", [this](const std::string &label) {
-                    int pinNb = 14;
-                    std::vector<std::tuple<std::string, ComponentType, std::vector<std::vector<nts::Tristate>>>> componentsData = {
-                            {"Or1", ComponentType::Standard, std::get<3>(_componentTruthTables["OR"])},
-                            {"Or2", ComponentType::Standard, std::get<3>(_componentTruthTables["OR"])},
-                            {"Or3", ComponentType::Standard, std::get<3>(_componentTruthTables["OR"])},
-                            {"Or4", ComponentType::Standard, std::get<3>(_componentTruthTables["OR"])}
-                    };
-                    std::map<std::size_t, std::pair<std::string, std::size_t>> pinRefTable = {
-                            {1, {"Or1", 1}},
-                            {2, {"Or1", 2}},
-                            {3, {"Or1", 3}},
-                            {4, {"Or2", 3}},
-                            {5, {"Or2", 1}},
-                            {6, {"Or2", 2}},
-                            {8, {"Or3", 1}},
-                            {9, {"Or3", 2}},
-                            {10, {"Or3", 3}},
-                            {11, {"Or4", 3}},
-                            {12, {"Or4", 1}},
-                            {13, {"Or4", 2}}
-                    };
-                    return new GenericGate(label, pinNb, componentsData, pinRefTable);
-                }}
-        };
-
         if (special.find(type) != special.end()) {
             return this->_addComponent(label, special[type](label));
         }
-//        if (gates.find(type) != gates.end()) {
-//            return this->_addComponent(label, gates[type](label));
-//        }
         if (_gates.find(type) != _gates.end()) {
             return this->_addComponent(label, _gates[type](label));
         }

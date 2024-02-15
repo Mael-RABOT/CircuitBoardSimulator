@@ -9,7 +9,7 @@ namespace nts {
             std::map<std::size_t, std::pair<std::string, std::size_t>> _pinRefTable;
 
         public:
-            GenericGate(const std::string &name, int pinNb, // This ctor is ... ugly to say the least. See the _factory method in Manager.hpp to understand the data structure
+            GenericGate(const std::string &name, int pinNb,
                         std::vector<
                             std::tuple<
                                 std::string, // Internal component name
