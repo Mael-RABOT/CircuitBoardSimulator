@@ -297,15 +297,17 @@ namespace nts {
             } else if (line.find(".INPUT:") == 0) {
                 // Parse input pins
                 std::istringstream iss(line.substr(7));
-                std::size_t pin;
-                while (iss >> pin) {
+                std::string pinStr;
+                while (std::getline(iss, pinStr, ',')) {
+                    std::size_t pin = std::stoi(pinStr);
                     inputPins.push_back(pin);
                 }
             } else if (line.find(".OUTPUT:") == 0) {
                 // Parse output pins
                 std::istringstream iss(line.substr(8));
-                std::size_t pin;
-                while (iss >> pin) {
+                std::string pinStr;
+                while (std::getline(iss, pinStr, ',')) {
+                    std::size_t pin = std::stoi(pinStr);
                     outputPins.push_back(pin);
                 }
             } else {
@@ -469,7 +471,22 @@ namespace nts {
         if (!(std::getline(iss, target, '=') && std::getline(iss, tension) && iss.eof())) {
             throw CustomError("Invalid command: " + line);
         }
-        if (tension != "0" && tension != "1") {
+
+        target.erase(target.begin(), std::find_if(target.begin(), target.end(), [](int ch) {
+            return !std::isspace(ch);
+        }));
+        target.erase(std::find_if(target.rbegin(), target.rend(), [](int ch) {
+            return !std::isspace(ch);
+        }).base(), target.end());
+
+        tension.erase(tension.begin(), std::find_if(tension.begin(), tension.end(), [](int ch) {
+            return !std::isspace(ch);
+        }));
+        tension.erase(std::find_if(tension.rbegin(), tension.rend(), [](int ch) {
+            return !std::isspace(ch);
+        }).base(), tension.end());
+
+        if (tension != "0" && tension != "1" && tension != "U") {
             throw CustomError("Invalid tension: " + tension);
         }
         if (_components.find(target) == _components.end()) {
@@ -478,7 +495,7 @@ namespace nts {
         if (_components[target]->getType() != ComponentType::Input) {
             throw CustomError("Invalid component type: " + target);
         }
-        _components[target]->setState(1, (tension == "1") ? Tristate::True : False);
+        _components[target]->setState(1, (tension == "1") ? Tristate::True : (tension == "0") ? Tristate::False : Tristate::Undefined);
     }
 
     void Manager::_checkRun() const {
