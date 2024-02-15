@@ -5,6 +5,7 @@
 # Project files
 *.nts
 ./nts*
+./customNtsInit
 
 # Compiled files
 nanotekspice

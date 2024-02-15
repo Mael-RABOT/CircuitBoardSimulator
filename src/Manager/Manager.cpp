@@ -4,6 +4,8 @@ namespace nts {
 
     bool g_sigintCaught = false;
 
+    /* Destructor */
+
     Manager::~Manager() {
         for (auto &component : _components) {
             delete component.second;
@@ -39,21 +41,54 @@ namespace nts {
                 {"false", [](const std::string &label) { return new FalseConst(label); }}
         };
 
+        std::map<std::string, std::function<IComponent*(const std::string&)>> gates = {
+                {"4071", [this](const std::string &label) {
+                    int pinNb = 14;
+                    std::vector<std::tuple<std::string, ComponentType, std::vector<std::vector<nts::Tristate>>>> componentsData = {
+                            {"Or1", ComponentType::Standard, std::get<3>(_componentTruthTables["OR"])},
+                            {"Or2", ComponentType::Standard, std::get<3>(_componentTruthTables["OR"])},
+                            {"Or3", ComponentType::Standard, std::get<3>(_componentTruthTables["OR"])},
+                            {"Or4", ComponentType::Standard, std::get<3>(_componentTruthTables["OR"])}
+                    };
+                    std::map<std::size_t, std::pair<std::string, std::size_t>> pinRefTable = {
+                            {1, {"Or1", 1}},
+                            {2, {"Or1", 2}},
+                            {3, {"Or1", 3}},
+                            {4, {"Or2", 3}},
+                            {5, {"Or2", 1}},
+                            {6, {"Or2", 2}},
+                            {8, {"Or3", 1}},
+                            {9, {"Or3", 2}},
+                            {10, {"Or3", 3}},
+                            {11, {"Or4", 3}},
+                            {12, {"Or4", 1}},
+                            {13, {"Or4", 2}}
+                    };
+                    return new GenericGate(label, pinNb, componentsData, pinRefTable);
+                }}
+        };
+
         if (special.find(type) != special.end()) {
             return this->_addComponent(label, special[type](label));
         }
+//        if (gates.find(type) != gates.end()) {
+//            return this->_addComponent(label, gates[type](label));
+//        }
+        if (_gates.find(type) != _gates.end()) {
+            return this->_addComponent(label, _gates[type](label));
+        }
         if (_componentTruthTables.find(toUpperCase(type)) == _componentTruthTables.end()) {
-            throw CustomError("No truth table found for " + type + " during creation.");
+            throw CustomError("No initializer found for \'" + type + "\' during creation.");
         }
         return this->_addComponent(
+            label,
+        new Chipset(
+                std::get<0>(_componentTruthTables[toUpperCase(type)]), // pinNb
                 label,
-                new Chipset(
-                        std::get<0>(_componentTruthTables[toUpperCase(type)]), // pinNb
-                        label,
-                        ComponentType::Standard,
-                        std::get<3>(_componentTruthTables[toUpperCase(type)]), // truth table
-                        std::get<1>(_componentTruthTables[toUpperCase(type)]), // input pins
-                        std::get<2>(_componentTruthTables[toUpperCase(type)]))); // output pins
+                ComponentType::Standard,
+                std::get<3>(_componentTruthTables[toUpperCase(type)]), // truth table
+                std::get<1>(_componentTruthTables[toUpperCase(type)]), // input pins
+                std::get<2>(_componentTruthTables[toUpperCase(type)]))); // output pins
 
     }
 
@@ -130,14 +165,14 @@ namespace nts {
 
     void Manager::simulate(std::size_t tick) {
         _currentTick = tick;
-        for (auto &output : _components) {
-            if (output.second->getType() == ComponentType::Input)
-                output.second->computeBehaviour(tick);
-        }
-        for (auto &output : _components) {
-            if (output.second->getType() == ComponentType::Standard)
-                output.second->computeBehaviour(tick);
-        }
+//        for (auto &output : _components) {
+//            if (output.second->getType() == ComponentType::Input)
+//                output.second->computeBehaviour(tick);
+//        }
+//        for (auto &output : _components) {
+//            if (output.second->getType() == ComponentType::Standard)
+//                output.second->computeBehaviour(tick);
+//        }
         for (auto &output : _components) {
             if (output.second->getType() == ComponentType::Output)
                 output.second->computeBehaviour(tick);
@@ -240,6 +275,18 @@ namespace nts {
         }
     }
 
+    void Manager::initGates(const std::string &folder) {
+        if (!std::filesystem::exists(folder)) {
+            throw CustomError("Directory does not exist: " + folder);
+        }
+
+        for (const auto &entry : std::filesystem::directory_iterator(folder)) {
+            if (entry.path().string().rfind(".nts.config") == entry.path().string().size() - 11) {
+                this->_parseGateConfig(entry.path());
+            }
+        }
+    }
+
     void Manager::initializeTruthTables(const std::string &folder) {
         if (!std::filesystem::exists(folder)) {
             throw CustomError("Directory does not exist: " + folder);
@@ -285,6 +332,10 @@ namespace nts {
                     throw CustomError("Forbidden label: " + line.substr(7));
                 }
                 if (!currentName.empty()) {
+                    if (_componentTruthTables.find(currentName) != _componentTruthTables.end()) {
+                        std::cout << "Overwriting truth table for " << currentName << std::endl;
+                        _componentTruthTables.erase(currentName);
+                    }
                     _componentTruthTables[currentName] = std::make_tuple(pinNb, inputPins, outputPins, currentTable);
                     inputPins.clear();
                     outputPins.clear();
@@ -355,6 +406,37 @@ namespace nts {
         system("pandoc ReadMe.md | lynx -stdin");
     }
 
+    void Manager::_commandHelp() {
+        std::ifstream file("ReadMe.md");
+        if (!file.is_open()) {
+            throw CustomError("Could not open file: ReadMe.md");
+        }
+
+        std::string line;
+        bool isShellCommandsSection = false;
+
+        while (std::getline(file, line)) {
+            if (line == "## Shell commands") {
+                isShellCommandsSection = true;
+                getline(file, line);
+            } else if (isShellCommandsSection && line.substr(0, 2) == "##") {
+                break;
+            } else if (isShellCommandsSection) {
+                std::cout << line << std::endl;
+            }
+        }
+        file.close();
+    }
+
+    void Manager::preParse(int ac, char **av) {
+        for (int i = 1; i < ac; i++) {
+            if (std::string(av[i]) == "--table-dir" && i + 1 < ac) {
+                this->initializeTruthTables(av[i + 1]);
+                i++;
+            }
+        }
+    }
+
     void Manager::parser(int ac, char **av) {
         if (ac <= 1) throw CustomError("Usage: ./nanotekspice [file.nts] (flags)");
         if (std::string(av[1]) == "-h" || std::string(av[1]) == "--help") {
@@ -366,12 +448,6 @@ namespace nts {
             this->createComponent("output", "output1");
             this->addLink("input1", 1, "output1", 1);
             return;
-        }
-        for (int i = 1; i < ac; i++) {
-            if (std::string(av[i]) == "--tabledir" && i + 1 < ac) {
-                this->initializeTruthTables(av[i + 1]);
-                i++;
-            }
         }
         const char* extension = strrchr(av[1], '.');
         if (extension == nullptr || strcmp(extension, ".nts") != 0) {
@@ -427,6 +503,7 @@ namespace nts {
                     throw CustomError("Use a real operating system");
                     #endif
                 }},
+                {"help", [this]() {this->_commandHelp(); }},
                 {"loop", [this]() { this->_loop(); }},
                 {"dump", [this]() { this->dump(); }},
                 {"simulate", [this]() { this->simulate(_currentTick + 1); }},
@@ -447,10 +524,26 @@ namespace nts {
                 }},
                 {"removeChipset ", [this, &line]() {
                     std::string command = line.substr(14);
-                    if (_components.find(command) == _components.end()) {
+                    auto it = _components.find(command);
+                    if (it == _components.end()) {
                         throw CustomError("Component not found: " + command);
                     }
-                    _components.erase(command);
+                    auto &component = it->second;
+                    auto pins = component->getPins();
+                    for (const auto &pin : pins) {
+                        removeLink(command, pin.first, command, pin.first);
+                    }
+                    for (auto &otherComponentPair : _components) {
+                        if (otherComponentPair.first == command) continue; // Skip the component being removed
+                        auto &otherComponent = otherComponentPair.second;
+                        auto otherPins = otherComponent->getPins();
+                        for (const auto &otherPin : otherPins) {
+                            if (otherPin.second.second.size() > 0 && otherPin.second.second[0].first.get().getName() == command) {
+                                removeLink(otherComponentPair.first, otherPin.first, command, otherPin.second.second[0].second);
+                            }
+                        }
+                    }
+                    _components.erase(it);
                 }}
         };
 
@@ -547,7 +640,7 @@ namespace nts {
                 try {
                     this->_handleCommand(command);
                 } catch (const CustomError &e) {
-                    std::cout << "\033[31m" << e.what() << "\033[39m" << std::endl;
+                    std::cout << e.what() << std::endl;
                 }
             }
         }
