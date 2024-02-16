@@ -1,5 +1,7 @@
 #include "Manager.hpp"
 
+#include "../Component/gate/genericGate.hpp"
+
 namespace nts {
 
     bool g_sigintCaught = false;
@@ -15,7 +17,7 @@ namespace nts {
     /* Component management */
 
     bool Manager::createComponent(const std::string &type, const std::string &label) {
-        return this->_factory(type, label);
+        return this->_addComponent(label, this->factory(type, label));
     }
 
     bool Manager::_addComponent(const std::string &label, IComponent *component) {
@@ -27,7 +29,7 @@ namespace nts {
         return true;
     }
 
-    bool Manager::_factory(const std::string &type, const std::string &label) {
+    IComponent *Manager::factory(const std::string &type, const std::string &label) {
         std::function<std::string(std::string)> toUpperCase = [](std::string str) {
             std::transform(str.begin(), str.end(), str.begin(), ::toupper);
             return str;
@@ -42,23 +44,21 @@ namespace nts {
         };
 
         if (special.find(type) != special.end()) {
-            return this->_addComponent(label, special[type](label));
+            return special[type](label);
         }
         if (_gates.find(type) != _gates.end()) {
-            return this->_addComponent(label, _gates[type](label));
+            return _gates[type](label);
         }
         if (_componentTruthTables.find(toUpperCase(type)) == _componentTruthTables.end()) {
             throw CustomError("No initializer found for \'" + type + "\' during creation.");
         }
-        return this->_addComponent(
-            label,
-        new Chipset(
+        return new Chipset(
                 std::get<0>(_componentTruthTables[toUpperCase(type)]), // pinNb
                 label,
                 ComponentType::Standard,
                 std::get<3>(_componentTruthTables[toUpperCase(type)]), // truth table
                 std::get<1>(_componentTruthTables[toUpperCase(type)]), // input pins
-                std::get<2>(_componentTruthTables[toUpperCase(type)]))); // output pins
+                std::get<2>(_componentTruthTables[toUpperCase(type)])); // output pins
 
     }
 
@@ -250,10 +250,16 @@ namespace nts {
             throw CustomError("Directory does not exist: " + folder);
         }
 
+        std::map<std::string, bool> paths;
+
         for (const auto &entry : std::filesystem::directory_iterator(folder)) {
             if (entry.path().string().rfind(".nts.config") == entry.path().string().size() - 11) {
-                this->_parseGateConfig(entry.path());
+                paths[entry.path()] = false;
             }
+        }
+        for (auto &entry : paths) {
+            if (entry.second) continue;
+            this->_parseGateConfig(entry.first, paths);
         }
     }
 
