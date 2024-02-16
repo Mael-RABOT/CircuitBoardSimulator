@@ -95,8 +95,8 @@ The file format is a simple text file with the following format:
     [GATE_NAME]
     PinNb [NUMBER]
     componentsData
-    [COMPONENT_NAME] [TYPE] [TRUTH_TABLE]
-    [COMPONENT_NAME] [TYPE] [TRUTH_TABLE]
+    [COMPONENT_NAME] [TYPE] [TRUTH_TABLE] [INPUTS] [OUTPUTS]
+    [COMPONENT_NAME] [TYPE] [TRUTH_TABLE] [INPUTS] [OUTPUTS]
     [...]
     end
     pinRefTable
@@ -118,6 +118,14 @@ The file format is a simple text file with the following format:
 - [TRUTH_TABLE] is the truth table of the internal component.<br>
 Thoses truth tables are the ones described in the .nts.init file.
 - end is used to mark the end of the internal components' description.
+- [INPUTS] is the list of input pins of the internal component.<br>
+The format for the input is: {1,2,...}<br>
+*Default value is: {1,2}*
+- [OUTPUTS] is the list of output pins of the internal component.<br>
+The format for the output is: {1,2,...}<br>
+  *Default value is: {3}*
+
+Inputs and outputs aren't mandatory, but the format must be respected.<br>
 
 #### Pin reference table:
 

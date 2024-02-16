@@ -14,8 +14,10 @@ namespace nts {
                             std::tuple<
                                 std::string, // Internal component name
                                 ComponentType, // Internal component type
-                                std::vector<std::vector<nts::Tristate> // Internal component truth table
-                        >>> componentsData, // Vector of tuples containing the internal components data
+                                std::vector<std::vector<nts::Tristate>>, // Internal component truth table
+                                std::vector<std::size_t>, // Internal component input pins
+                                std::vector<std::size_t> // Internal component output pins
+                        >> componentsData, // Vector of tuples containing the internal components data
                         std::map<
                             std::size_t, // Internal pin number
                             std::pair<
@@ -25,7 +27,7 @@ namespace nts {
             : AComponent(pinNb, name, ComponentType::Standard), _pinRefTable(pinRefTable) {
                     for (auto &data : componentsData) { // Create the internal components
                         _components.push_back(std::make_pair(std::get<0>(data),
-                            new Chipset(3, std::get<0>(data), std::get<1>(data), std::get<2>(data), {1, 2}, {3})));
+                            new Chipset(3, std::get<0>(data), std::get<1>(data), std::get<2>(data), std::get<3>(data), std::get<4>(data))));
                     }
             };
             ~GenericGate() {
