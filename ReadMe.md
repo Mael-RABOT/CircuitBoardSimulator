@@ -1,5 +1,25 @@
 # NanoTekSpice
 
+<!-- TOC -->
+* [NanoTekSpice](#nanotekspice)
+  * [Project overview](#project-overview)
+  * [Usage](#usage)
+    * [Flags](#flags)
+  * [`.nts` File format](#nts-file-format)
+  * [`.nts.init` File format](#ntsinit-file-format)
+  * [`.nts.config` File format](#ntsconfig-file-format)
+      * [Gate description:](#gate-description)
+      * [Internal components description:](#internal-components-description)
+      * [Pin reference table:](#pin-reference-table)
+  * [Loading order](#loading-order)
+  * [Removing `.init` and `.config` files](#removing-init-and-config-files)
+  * [Shell commands](#shell-commands)
+  * [Architecture](#architecture)
+
+  * [Build & Run](#build--run)
+  * [Author](#author)
+<!-- TOC -->
+
 ## Project overview
 
 NanoTekSpice is a logic simulator that can parse and simulate a circuit described in a file.<br>
@@ -92,11 +112,12 @@ If one of those components is found in the .nts file, the simulator will throw a
 
 The file format is a simple text file with the following format:
 
+    #comment
     [GATE_NAME]
     PinNb [NUMBER]
     componentsData
-    [COMPONENT_NAME] [TYPE] [TRUTH_TABLE] [INPUTS] [OUTPUTS]
-    [COMPONENT_NAME] [TYPE] [TRUTH_TABLE] [INPUTS] [OUTPUTS]
+    [COMPONENT_LABEL] [COMPONENT]
+    [COMPONENT_LABEL] [COMPONENT]
     [...]
     end
     pinRefTable
@@ -112,20 +133,11 @@ The file format is a simple text file with the following format:
 
 #### Internal components description:
 
-- [COMPONENT_NAME] is the name of an internal component.<br>
-- [TYPE] is the type of the internal component. (Input, Standard, Output)<br>
-*It is not recommended to use the type "Input" or "Output" for internal components.*
-- [TRUTH_TABLE] is the truth table of the internal component.<br>
-Thoses truth tables are the ones described in the .nts.init file.
-- end is used to mark the end of the internal components' description.
-- [INPUTS] is the list of input pins of the internal component.<br>
-The format for the input is: {1,2,...}<br>
-*Default value is: {1,2}*
-- [OUTPUTS] is the list of output pins of the internal component.<br>
-The format for the output is: {1,2,...}<br>
-  *Default value is: {3}*
-
-Inputs and outputs aren't mandatory, but the format must be respected.<br>
+- [COMPONENT_LABEL] is the name of an internal component.<br>
+- [COMPONENT] is the component that will be used internally.<br>
+The [COMPONENT] will be chosen from the standard components, or from the user defined components.<br>
+It is also possible to use a custom gate, if the .nts.config file is loaded before the custom gate.<br>
+For more information, see the [Loading order](#loading-order) section.
 
 #### Pin reference table:
 
@@ -146,12 +158,22 @@ If a custom Truth Table is loaded with `--table-dir`, it is possible to use it i
 
 ## Loading order
 
-- The standard truth tables are loaded first.
-- The user defined truth tables are loaded second.
-- The .nts.config files are loaded last.
+- The standard truth tables int `./Config/TruthTable/` are loaded first.
+- The user defined truth tables with `--table-dir` are loaded second.
+- The .nts.config files in `./Config/Gates/Primary/` are loaded third.
+- The .nts.config files in `./Config/Gates/Secondary/` are loaded last.
 
 Overriding a standard truth table with a user defined truth table will result in the user defined truth table being used.<br>
 Gates will also use the user defined truth table if one is found.
+
+Gates placed in the `./Config/Gates/Primary/` should only use truth table defined components as internal components.<br>
+Gates using other gates as internal components need to be placed in the `./config/Gates/Secondary/` directory.<br>
+The file order inside `./Config/Gates/Secondary/` isn't important, as the simulator will order their parsing on its own.
+
+## Removing `.init` and `.config` files
+
+The defaults files included in the `./Config` can be removed by the user.<br>
+Be aware that we **do not** provide a backup of those files.
 
 ## Shell commands
 
@@ -161,7 +183,7 @@ Gates will also use the user defined truth table if one is found.
 - `display`, `ls`                         : Display the current state of the circuit.
 - `simulate`, `sm`                        : Simulate the circuit for one tick.
 - `loop`                                  : Simulate the circuit until a SIGINT (ctrl+c).
-- `dump`                                  : Display the current state of all the chipsets, pins and links.
+- `dump`                                  : Display the current state of all the chipsets and pins.
 - `add [type] [name]`                     : Add a new chipset to the circuit.
 - `link [name]:[pin] [name]:[pin]`        : Link two pins together.
 - `removeChipset [name]`                  : Remove a chipset from the circuit.
@@ -175,7 +197,7 @@ Commands can be combined with the `&` character.
 
 ### Component Management
 
-The `Manager` class is responsible for managing components in the application. It uses a factory pattern to create components based on their type. The `_factory` method is used to create components of various types, including logic gates and special components like input, output, clock, true, and false. The created component is then added to the `_components` map using the `_addComponent` method.
+The `Manager` class is responsible for managing components in the application. It uses a factory pattern to create components based on their type. The `factory` method is used to create components of various types, including logic gates and special components like input, output, clock, true, and false. The created component is then added to the `_components` map using the `_addComponent` method.
 
 ### Link Management
 
@@ -215,4 +237,4 @@ This project was carried out with the heart by:
 - [**Maël RABOT**](https://www.linkedin.com/in/mael-rabot/)
 
 As second year IT students, we discovered the C++ language and the OOP paradigm with this project.<br>
-We are proud of the result and we hope you will enjoy it as much as we do.
+We are proud of the result, and we hope you will enjoy it as much as we do.

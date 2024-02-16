@@ -44,9 +44,6 @@ namespace nts {
 
             void _checkRun() const;
             bool _addComponent(const std::string &label, IComponent *component);
-            bool _factory(
-                    const std::string &type,
-                    const std::string &label);
 
             void _displayPrint(const std::string &title, ComponentType type);
             void _dumpPrint(const std::string &title, ComponentType type);
@@ -77,10 +74,14 @@ namespace nts {
             void simulate() { this->simulate(_currentTick++); };
             void simulate(std::size_t tick);
 
+            IComponent * factory(
+                const std::string &type,
+                const std::string &label);
+
             void initializeTruthTables(const std::string &folder);
             void _generateTruthTableFromFile(const std::string &filename);
             void initGates(const std::string &folder);
-            void _parseGateConfig(const std::string& filename);
+            void _parseGateConfig(const std::string& filename, std::map<std::string, bool>& paths);
 
             static nts::ParserStage stageChecker(std::ifstream &fs, std::string &line, nts::ParserStage &stage);
             void preParse(int ac, char **av);
