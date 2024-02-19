@@ -1,8 +1,8 @@
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>
 
-#include "../include/paths.hpp"
-#include "../src/Manager/Manager.hpp"
+#include "../../include/paths.hpp"
+#include "../../src/Manager/Manager.hpp"
 
 nts::Manager AndManager;
 
