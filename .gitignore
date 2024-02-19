@@ -9,6 +9,7 @@
 
 # Compiled files
 nanotekspice
+nanotester
 *.out
 *.o
 *.gcov
