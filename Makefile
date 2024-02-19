@@ -20,9 +20,10 @@ $(EXE): $(OBJ)
 		$(CXX) -o $(EXE) $^
 
 $(TEST_EXE): $(TEST_OBJ)
-	    $(CXX) -o $(TEST_EXE) $^ -lcriterion --coverage
+		$(CXX) -o $(TEST_EXE) $^ -lcriterion --coverage
 
 test: $(TEST_EXE)
+		gcovr --exclude ./test
 		./$(TEST_EXE)
 
 clean:
