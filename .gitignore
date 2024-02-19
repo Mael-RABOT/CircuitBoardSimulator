@@ -5,6 +5,7 @@
 # Compiled files
 nanotekspice
 nanotester
+unit_tests
 *.out
 *.o
 *.gcov
