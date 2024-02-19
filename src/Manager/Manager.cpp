@@ -564,7 +564,7 @@ namespace nts {
         if (_components[target]->getType() != ComponentType::Input) {
             throw CustomError("Invalid component type: " + target);
         }
-        _components[target]->setState(1, (tension == "1") ? Tristate::True : (tension == "0") ? Tristate::False : Tristate::Undefined);
+        _components[target]->setValue(tension == "1" ? nts::Tristate::True : (tension == "0" ? nts::Tristate::False : nts::Tristate::Undefined));
     }
 
     void Manager::_checkRun() const {

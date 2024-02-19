@@ -47,5 +47,6 @@ namespace nts {
             void setState(std::size_t pin, Tristate state) override { _pins[pin].first = state; };
             std::string getName() const override { return _label; };
             virtual void computeBehaviour(std::size_t tick) = 0;
+            void setValue(nts::Tristate) override {};
     };
 }
