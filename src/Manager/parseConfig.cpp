@@ -28,11 +28,9 @@ namespace nts {
                 std::string, // Internal component type
                 std::string  // Internal component name
             >> componentsData;
-        std::map<
+        std::multimap<
                 std::size_t,
-                std::pair<
-                    std::string,
-                    std::size_t>
+                std::pair<std::string, std::size_t>
             > pinRefTable;
         std::string componentName, type;
 
@@ -70,12 +68,35 @@ namespace nts {
             std::string componentName;
             std::size_t componentPin;
             iss >> pin >> componentName >> componentPin;
-            pinRefTable[pin] = {componentName, componentPin};
+            pinRefTable.insert({pin, {componentName, componentPin}});
+        }
+
+        std::multimap<
+                std::string, // Name
+                std::tuple<
+                    std::size_t, // Pin
+                    std::string, // Other name
+                    std::size_t> // Other pin
+            > internalLink;
+        internalLink.clear();
+
+        while (std::getline(file, line) && line != "end") {
+            if (line == "internalLink") {
+                while (std::getline(file, line) && line != "end") {
+                    std::istringstream iss(line);
+                    std::string name;
+                    std::size_t pin;
+                    std::string otherName;
+                    std::size_t otherPin;
+                    iss >> name >> pin >> otherName >> otherPin;
+                    internalLink.insert({name, {pin, otherName, otherPin}});
+                }
+            }
         }
 
         paths[filename] = true;
-        _gates[gateName] = [this, pinNb, componentsData, pinRefTable](const std::string &label) {
-            return new GenericGate(this, label, pinNb, componentsData, pinRefTable);
+        _gates[gateName] = [this, pinNb, componentsData, pinRefTable, internalLink](const std::string &label) {
+            return new GenericGate(this, label, pinNb, componentsData, pinRefTable, internalLink);
         };
     }
 }
