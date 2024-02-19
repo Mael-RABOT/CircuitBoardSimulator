@@ -47,7 +47,6 @@ namespace nts {
                         std::reference_wrapper<IComponent>,
                         std::size_t>
             > getLinks(std::size_t pin) = 0;
-            virtual std::string getName() const = 0;
             virtual void setState(std::size_t pin, Tristate state) = 0;
             virtual void computeBehaviour(std::size_t tick) = 0;
             virtual void setValue(nts::Tristate value) = 0;

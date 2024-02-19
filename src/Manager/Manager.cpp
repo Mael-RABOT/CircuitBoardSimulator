@@ -517,7 +517,7 @@ namespace nts {
                         auto &otherComponent = otherComponentPair.second;
                         auto otherPins = otherComponent->getPins();
                         for (const auto &otherPin : otherPins) {
-                            if (otherPin.second.second.size() > 0 && otherPin.second.second[0].first.get().getName() == command) {
+                            if (otherPin.second.second.size() > 0 && otherPin.second.second[0].first.get().getLabel() == command) {
                                 removeLink(otherComponentPair.first, otherPin.first, command, otherPin.second.second[0].second);
                             }
                         }
