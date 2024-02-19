@@ -8,34 +8,31 @@ CXX		 = g++
 CFLAGS	 = -std=c++20 -Wall -Wextra
 V_FLAG   = --leak-check=full --show-leak-kinds=all --track-origins=yes
 EXE		 = nanotekspice
-TEST_EXE = nanotester
+TEST_EXE = unit_tests
 SAN		 = -g3
+COV		 = --coverage
 
 all:	$(EXE)
 
 %.o:	%.cpp
-		$(CXX) -o $@ -c $< $(CFLAGS) $(SAN)
+	$(CXX) -o $@ -c $< $(CFLAGS) $(SAN) $(COV)
 
 $(EXE): $(OBJ)
-		$(CXX) -o $(EXE) $^
+	$(CXX) -o $(EXE) $^ $(COV)
 
 $(TEST_EXE): $(TEST_OBJ)
-		$(CXX) -o $(TEST_EXE) $^ -lcriterion --coverage
-
-test: $(TEST_EXE)
-		gcovr --exclude ./test
-		./$(TEST_EXE)
+	$(CXX) -o $(TEST_EXE) $^ -lcriterion $(COV)
 
 clean:
-		@rm -rf $(OBJ)
-		@rm -rf $(TEST_OBJ)
-		@rm -rf vgcore*
-		@rm -rf *.gcda
-		@rm -rf *.gcno
+	@rm -rf $(OBJ)
+	@rm -rf $(TEST_OBJ)
+	@rm -rf vgcore*
+	@find . -type f -name '*.gcda' -delete
+	@find . -type f -name '*.gcno' -delete
 
 fclean:	clean
-		@rm -rf $(EXE)
-		@rm -rf $(TEST_EXE)
+	@rm -rf $(EXE)
+	@rm -rf $(TEST_EXE)
 
 re:	fclean all
 
@@ -44,3 +41,11 @@ val:
 
 val_full:
 	make re && valgrind $(V_FLAG) ./$(EXE)
+
+test: $(TEST_EXE)
+	./$(TEST_EXE)
+
+tests_run: test	# for mouli
+	gcovr --exclude ./test
+
+.PHONY: all clean fclean re val val_full test tests_run
