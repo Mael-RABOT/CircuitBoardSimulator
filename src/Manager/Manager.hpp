@@ -57,6 +57,7 @@ namespace nts {
             ~Manager();
 
             bool createComponent(const std::string &type, const std::string &label);
+            IComponent *getComponent(const std::string &label);
 
             void addLink(
                 const std::string &source,
@@ -71,7 +72,7 @@ namespace nts {
 
             void dump(bool = true, bool = true, bool = true, bool = false);
 
-            void simulate() { this->simulate(_currentTick++); };
+            void simulate() { this->simulate(++_currentTick); };
             void simulate(std::size_t tick);
 
             IComponent * factory(
@@ -89,5 +90,6 @@ namespace nts {
 
             void display();
             void run();
+            void clearComponents();
     };
 }

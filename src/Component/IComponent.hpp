@@ -50,5 +50,6 @@ namespace nts {
             virtual void setState(std::size_t pin, Tristate state) = 0;
             virtual void computeBehaviour(std::size_t tick) = 0;
             virtual void setValue(nts::Tristate value) = 0;
+            virtual Tristate getValue(std::size_t pin) = 0;
     };
 }

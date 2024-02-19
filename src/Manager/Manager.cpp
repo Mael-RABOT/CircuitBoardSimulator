@@ -20,6 +20,13 @@ namespace nts {
         return this->_addComponent(label, this->factory(type, label));
     }
 
+    IComponent *Manager::getComponent(const std::string &label) {
+        if (_components.find(label) == _components.end()) {
+            throw CustomError("Component not found: " + label);
+        }
+        return _components[label];
+    }
+
     bool Manager::_addComponent(const std::string &label, IComponent *component) {
         if (component == nullptr)
             throw CustomError("Creation went wrong.");
@@ -135,10 +142,10 @@ namespace nts {
 
     void Manager::simulate(std::size_t tick) {
         _currentTick = tick;
-//        for (auto &output : _components) {
-//            if (output.second->getType() == ComponentType::Input)
-//                output.second->computeBehaviour(tick);
-//        }
+        for (auto &input : _components) {
+            if (input.second->getType() == ComponentType::Input)
+                input.second->computeBehaviour(tick);
+        }
 //        for (auto &output : _components) {
 //            if (output.second->getType() == ComponentType::Standard)
 //                output.second->computeBehaviour(tick);
@@ -623,5 +630,13 @@ namespace nts {
                 }
             }
         }
+    }
+
+    void Manager::clearComponents() {
+        for (auto &component : _components) {
+            delete component.second;
+        }
+        _components.clear();
+        _currentTick = 0;
     }
 }
