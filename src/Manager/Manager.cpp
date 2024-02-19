@@ -243,6 +243,9 @@ namespace nts {
                     throw CustomError("Invalid stage: " + std::to_string(stage));
             }
         }
+        if (stage != nts::ParserStage::LINKS) {
+            throw CustomError("All stages not found");
+        }
     }
 
     void Manager::initGates(const std::string &folder) {

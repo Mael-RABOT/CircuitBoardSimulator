@@ -12,6 +12,7 @@ int main(int ac, char **av) {
         manager.run();
     } catch (const nts::CustomError &e) {
         std::cerr << e.what() << std::endl;
+        return 84;
     }
     return 0;
 }
