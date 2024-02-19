@@ -2,14 +2,10 @@
 /.idea
 ./cmake*
 
-# Project files
-*.nts
-./nts*
-./customNtsInit
-
 # Compiled files
 nanotekspice
 nanotester
+unit_tests
 *.out
 *.o
 *.gcov

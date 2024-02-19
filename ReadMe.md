@@ -2,30 +2,37 @@
 
 <!-- TOC -->
 * [NanoTekSpice](#nanotekspice)
-  * [Project overview](#project-overview)
-  * [Usage](#usage)
+* [Project overview](#project-overview)
+* [Usage](#usage)
     * [Flags](#flags)
-  * [`.nts` File format](#nts-file-format)
-  * [`.nts.init` File format](#ntsinit-file-format)
-  * [`.nts.config` File format](#ntsconfig-file-format)
-      * [Gate description:](#gate-description)
-      * [Internal components description:](#internal-components-description)
-      * [Pin reference table:](#pin-reference-table)
-  * [Loading order](#loading-order)
-  * [Removing `.init` and `.config` files](#removing-init-and-config-files)
-  * [Shell commands](#shell-commands)
-  * [Architecture](#architecture)
-
-  * [Build & Run](#build--run)
-  * [Author](#author)
+* [`.nts` File format](#nts-file-format)
+* [`.nts.init` File format](#ntsinit-file-format)
+* [`.nts.config` File format](#ntsconfig-file-format)
+    * [Gate description:](#gate-description)
+    * [Internal components description:](#internal-components-description)
+    * [Pin reference table:](#pin-reference-table)
+    * [Internal link:](#internal-link)
+* [Loading order](#loading-order)
+* [Removing `.init` and `.config` files](#removing-init-and-config-files)
+* [Shell commands](#shell-commands)
+* [Architecture](#architecture)
+    * [Component Management](#component-management)
+    * [Link Management](#link-management)
+    * [Simulation](#simulation)
+    * [Parsing](#parsing)
+    * [Truth Tables](#truth-tables)
+    * [Command Execution](#command-execution)
+    * [Error Handling](#error-handling)
+* [Build & Run](#build--run)
+* [Author](#author)
 <!-- TOC -->
 
-## Project overview
+# Project overview
 
 NanoTekSpice is a logic simulator that can parse and simulate a circuit described in a file.<br>
 A shell interface is available to interact with the simulator (see [Shell commands](#shell-commands)).
 
-## Usage
+# Usage
 
     ./nanotekspice [file.nts] (flag)
 
@@ -37,7 +44,7 @@ If this flag is used, the program will not load the input file, and the user wil
 - `--table-dir [dir]` : generate (or override) truth tables from a user defined directory.<br>
 The directory must containt .nts.init file, [format](#nts-file-format) explained below. Standard truth table are still generated with this flag, more information in the [Loading order](#loading-order) section.
 
-## `.nts` File format
+# `.nts` File format
 
 The file format is a simple text file with the following format:
 
@@ -51,7 +58,7 @@ The file format is a simple text file with the following format:
 - `[name]` is the name of the chipset.
 - `[pin]` is the id of the pin.
 
-## `.nts.init` File format
+# `.nts.init` File format
 
 The file format is a simple text file with the following format:
 
@@ -108,7 +115,7 @@ Some components need special behavior: clock, input, output, ram, etc.<br>
 Thoses components **aren't** described in the .nts.init file, and are handled by the simulator.
 If one of those components is found in the .nts file, the simulator will throw an error.
 
-## `.nts.config` File format
+# `.nts.config` File format
 
 The file format is a simple text file with the following format:
 
@@ -125,13 +132,20 @@ The file format is a simple text file with the following format:
     [PIN] [COMPONENT_NAME] [COMPONENT_PIN]
     [...]
     end
+    internalLink
+    [SRC_NAME] [SRC_PIN] [DEST_NAME] [DEST_PIN]
+    end
 
-#### Gate description:
+---
+
+### Gate description:
 
 - [GATE_NAME] is the name of the gate.<br>
 - [NUMBER] is the number of pins for the gate.<br>
 
-#### Internal components description:
+---
+
+### Internal components description:
 
 - [COMPONENT_LABEL] is the name of an internal component.<br>
 - [COMPONENT] is the component that will be used internally.<br>
@@ -139,12 +153,62 @@ The [COMPONENT] will be chosen from the standard components, or from the user de
 It is also possible to use a custom gate, if the .nts.config file is loaded before the custom gate.<br>
 For more information, see the [Loading order](#loading-order) section.
 
-#### Pin reference table:
+---
+
+### Pin reference table:
 
 - [PIN] is the pin number of the gate.<br>
 - [COMPONENT_NAME] is the name of the internal component.<br>
 - [COMPONENT_PIN] is the pin number of the internal component.<br>
 - end is used to mark the end of the pin reference table.
+
+**Note:** *A pin can be referenced multiple times.*
+
+---
+
+### Internal link:
+- [SRC_NAME] is the name of the source component.<br>
+- [SRC_PIN] is the pin number of the source component.<br>
+- [DEST_NAME] is the name of the destination component.<br>
+- [DEST_PIN] is the pin number of the destination component.<br>
+
+**Note:** *This section is optional, and is used to link internal components together.*
+
+---
+
+<details>
+  <summary>e.g.</summary>
+
+    fulladder
+    #pin: 1 = A, 2 = B, 3 = Cin, 4 = S, 5 = Cout
+    pinNb 5
+    componentsData
+    Xor1 XOR
+    And1 AND
+    Xor2 XOR
+    And2 AND
+    Or1 OR
+    end
+    pinRefTable
+    1 Xor1 1
+    1 And1 1
+    2 Xor1 2
+    2 And1 2
+    3 Xor2 2
+    3 And2 2
+    4 Xor2 3
+    5 Or1 3
+    end
+    internalLink
+    Xor1 3 Xor2 1
+    Xor1 3 And2 1
+    And1 3 Or1 2
+    And2 3 Or1 1
+    end
+
+</details>
+
+---
 
 The .nts.config file is used to describe a custom gate, with internal components and pin reference table.<br>
 
@@ -156,7 +220,7 @@ If a custom Truth Table is loaded with `--table-dir`, it is possible to use it i
 
 **Note:** *The three files format purposely do not have the same format, to avoid confusion between the files.*
 
-## Loading order
+# Loading order
 
 - The standard truth tables int `./Config/TruthTable/` are loaded first.
 - The user defined truth tables with `--table-dir` are loaded second.
@@ -170,12 +234,12 @@ Gates placed in the `./Config/Gates/Primary/` should only use truth table define
 Gates using other gates as internal components need to be placed in the `./config/Gates/Secondary/` directory.<br>
 The file order inside `./Config/Gates/Secondary/` isn't important, as the simulator will order their parsing on its own.
 
-## Removing `.init` and `.config` files
+# Removing `.init` and `.config` files
 
 The defaults files included in the `./Config` can be removed by the user.<br>
 Be aware that we **do not** provide a backup of those files.
 
-## Shell commands
+# Shell commands
 
 - `exit`                                  : Exit the simulator.
 - `help`                                  : Display the help message.
@@ -190,7 +254,7 @@ Be aware that we **do not** provide a backup of those files.
 - `removeLink [name]:[pin] [name]:[pin]`  : Remove a link from the circuit.
 
 Commands can be combined with the `&` character.
-## Architecture
+# Architecture
 
 <details>
   <summary>explanations</summary>
@@ -225,11 +289,11 @@ The `CustomError` class is used to handle custom exceptions in the application. 
 
 </details>
 
-## Build & Run
+# Build & Run
 
     make && ./nanotekspice [file.nts] (flag)
 
-## Author
+# Author
 
 This project was carried out with the heart by:
 

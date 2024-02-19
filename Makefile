@@ -43,7 +43,7 @@ val_full:
 	make re && valgrind $(V_FLAG) ./$(EXE)
 
 test: $(TEST_EXE)
-	./$(TEST_EXE)
+	./$(TEST_EXE) --verbose
 
 tests_run: test	# for mouli
 	gcovr --exclude ./test
