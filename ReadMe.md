@@ -134,6 +134,7 @@ The file format is a simple text file with the following format:
     end
     internalLink
     [SRC_NAME] [SRC_PIN] [DEST_NAME] [DEST_PIN]
+    [...]
     end
 
 ---

@@ -27,6 +27,8 @@ Test(Clock, should_create_clock) {
 Test(Clock, should_compute_behaviour) {
     nts::IComponent *component = ClockManager.getComponent("clock1");
 
+    component->setValue(nts::Tristate::True);
+
     ClockManager.simulate(1);
     cr_assert_eq(component->getValue(1), nts::Tristate::True);
 
