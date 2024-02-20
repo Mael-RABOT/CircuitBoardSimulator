@@ -18,8 +18,7 @@ namespace nts {
                 std::vector<std::size_t> inputPins,
                 std::vector<std::size_t> outputPins
             ) : AComponent(pinNb, label, type),
-                _inputPins(inputPins), _outputPins(outputPins), _truthTable(truthTable) {
-            };
+                _inputPins(inputPins), _outputPins(outputPins), _truthTable(truthTable) {};
 
             void computeBehaviour(std::size_t tick) override {
                 bool inputLinkFound = false;
@@ -60,21 +59,6 @@ namespace nts {
                         }
                         return;
                     }
-                }
-
-                std::cout << "Component: " << _label << std::endl;
-
-                std::cout << "Input states: ";
-                for (auto state : inputStates) {
-                    std::cout << state << " ";
-                }
-
-                std::cout << "\ntruthTable:\n";
-                for (auto row : _truthTable) {
-                    for (auto state : row) {
-                        std::cout << state << " ";
-                    }
-                    std::cout << std::endl;
                 }
 
                 throw nts::CustomError("No match found in truth table");

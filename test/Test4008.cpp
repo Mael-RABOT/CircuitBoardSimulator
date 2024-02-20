@@ -25,32 +25,31 @@ TestSuite(four_bit_adder_tests, .init = FourBitAdderSetup, .fini = FourBitAdderT
 std::vector<std::vector<nts::Tristate>> generateTestCases() {
     std::vector<std::vector<nts::Tristate>> testCases;
 
-    for (int i = 0; i < 512; ++i) {
-        std::vector<nts::Tristate> testCase(14, nts::Tristate::False);
+    for (int i = 0; i < 16; ++i) {
+        for (int j = 0; j < 16; ++j) {
+            for (int k = 0; k < 2; ++k) {
+                std::vector<nts::Tristate> testCase;
+                // Generate inputs for in_a1 to in_a4
+                for (int bit = 0; bit < 4; ++bit) {
+                    testCase.push_back((i & (1 << bit)) ? nts::Tristate::True : nts::Tristate::False);
+                }
+                // Generate inputs for in_b1 to in_b4
+                for (int bit = 0; bit < 4; ++bit) {
+                    testCase.push_back((j & (1 << bit)) ? nts::Tristate::True : nts::Tristate::False);
+                }
+                // Generate input for in_c
+                testCase.push_back(k ? nts::Tristate::True : nts::Tristate::False);
 
-        for (int j = 0; j < 9; ++j) {
-            if (i & (1 << j)) {
-                testCase[j] = nts::Tristate::True;
+                // Calculate expected outputs for out_0 to out_3 and out_c
+                int sum = i + j + k;
+                for (int bit = 0; bit < 4; ++bit) {
+                    testCase.push_back((sum & (1 << bit)) ? nts::Tristate::True : nts::Tristate::False);
+                }
+                testCase.push_back((sum & (1 << 4)) ? nts::Tristate::True : nts::Tristate::False);
+
+                testCases.push_back(testCase);
             }
         }
-
-        int sum = 0;
-        for (int j = 0; j < 8; ++j) {
-            if (testCase[j] == nts::Tristate::True) {
-                sum += (1 << j);
-            }
-        }
-        if (testCase[8] == nts::Tristate::True) {
-            sum += 1;
-        }
-
-        for (int j = 0; j < 5; ++j) {
-            if (sum & (1 << j)) {
-                testCase[9+j] = nts::Tristate::True;
-            }
-        }
-
-        testCases.push_back(testCase);
     }
 
     return testCases;

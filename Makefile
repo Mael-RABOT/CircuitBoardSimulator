@@ -45,7 +45,7 @@ val_full:
 test: $(TEST_EXE)
 	./$(TEST_EXE) --verbose
 
-tests_run: test	# for mouli
+tests_run: fclean test	# for mouli
 	gcovr --exclude-directories test
 
 .PHONY: all clean fclean re val val_full test tests_run

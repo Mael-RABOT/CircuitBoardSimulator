@@ -11,7 +11,7 @@ namespace nts {
         std::multimap<std::size_t, std::pair<std::string, std::size_t>> _pinRefTable;
         std::multimap<std::string, std::tuple<std::size_t, std::string, std::size_t>> _internalLink;
 
-        void linkInternalComponents() {
+        void _linkInternalComponents() {
             if (_internalLink.empty())
                 return;
             for (auto &[componentName, link] : _internalLink) {
@@ -34,7 +34,7 @@ namespace nts {
             for (auto &data : componentsData) {
                 _components[std::get<1>(data)] = manager->factory(std::get<0>(data), std::get<1>(data));
             }
-            this->linkInternalComponents();
+            this->_linkInternalComponents();
         }
         ~GenericGate() {
             for (auto &component : _components) {
