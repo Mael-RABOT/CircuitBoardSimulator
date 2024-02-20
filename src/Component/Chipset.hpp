@@ -18,8 +18,7 @@ namespace nts {
                 std::vector<std::size_t> inputPins,
                 std::vector<std::size_t> outputPins
             ) : AComponent(pinNb, label, type),
-                _inputPins(inputPins), _outputPins(outputPins), _truthTable(truthTable) {
-            };
+                _inputPins(inputPins), _outputPins(outputPins), _truthTable(truthTable) {};
 
             void computeBehaviour(std::size_t tick) override {
                 bool inputLinkFound = false;

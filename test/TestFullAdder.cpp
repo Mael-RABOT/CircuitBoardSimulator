@@ -1,8 +1,5 @@
 #include <criterion/criterion.h>
 
-#include <vector>
-#include <tuple>
-
 #include "../include/paths.hpp"
 #include "../src/Manager/Manager.hpp"
 
