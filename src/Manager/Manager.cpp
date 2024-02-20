@@ -66,7 +66,6 @@ namespace nts {
                 std::get<3>(_componentTruthTables[toUpperCase(type)]), // truth table
                 std::get<1>(_componentTruthTables[toUpperCase(type)]), // input pins
                 std::get<2>(_componentTruthTables[toUpperCase(type)])); // output pins
-
     }
 
     void Manager::addLink(

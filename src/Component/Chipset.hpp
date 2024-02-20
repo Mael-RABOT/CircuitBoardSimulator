@@ -62,6 +62,21 @@ namespace nts {
                     }
                 }
 
+                std::cout << "Component: " << _label << std::endl;
+
+                std::cout << "Input states: ";
+                for (auto state : inputStates) {
+                    std::cout << state << " ";
+                }
+
+                std::cout << "\ntruthTable:\n";
+                for (auto row : _truthTable) {
+                    for (auto state : row) {
+                        std::cout << state << " ";
+                    }
+                    std::cout << std::endl;
+                }
+
                 throw nts::CustomError("No match found in truth table");
             };
     };
