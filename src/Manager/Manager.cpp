@@ -47,7 +47,8 @@ namespace nts {
                 {"output", [](const std::string &label) { return new OutputComp(label); }},
                 {"clock", [](const std::string &label) { return new Clock(label); }},
                 {"true", [](const std::string &label) { return new TrueConst(label); }},
-                {"false", [](const std::string &label) { return new FalseConst(label); }}
+                {"false", [](const std::string &label) { return new FalseConst(label); }},
+                {"logger", [](const std::string &label) { return new Logger(label); }}
         };
 
         if (special.find(type) != special.end()) {
