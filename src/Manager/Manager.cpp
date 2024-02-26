@@ -319,7 +319,6 @@ namespace nts {
                 }
                 if (!currentName.empty()) {
                     if (_componentTruthTables.find(currentName) != _componentTruthTables.end()) {
-                        std::cout << "Overwriting truth table for " << currentName << std::endl;
                         _componentTruthTables.erase(currentName);
                     }
                     _componentTruthTables[currentName] = std::make_tuple(pinNb, inputPins, outputPins, currentTable);

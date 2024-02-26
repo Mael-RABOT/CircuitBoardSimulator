@@ -19,7 +19,6 @@ namespace nts {
                     return (void)(needUpdate = false);
                 }
                 if (_pins[1].first == nts::Tristate::Undefined) return;
-                std::cout << "new value: " << ((_pins[1].first == nts::Tristate::True) ? nts::Tristate::False : nts::Tristate::True) << std::endl;
                 return (void)(_pins[1].first = (_pins[1].first == nts::Tristate::True) ? nts::Tristate::False : nts::Tristate::True);
             }
             void setValue(nts::Tristate value) {
