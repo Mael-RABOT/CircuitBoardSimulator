@@ -13,9 +13,11 @@ namespace nts {
             this->update(i);
     }
 
-    nts::Tristate AComponent::_internalCompute(std::size_t pin) {
+    nts::Tristate AComponent::_internalCompute(std::size_t pin, bool forceCompute) {
         std::stack<nts::Tristate> linkedStates;
         for (auto link : _pins[pin].second) {
+            if (!forceCompute && link.first.get().getType() != nts::ComponentType::Constants)
+                continue;
             nts::Tristate linkedPinState = link.first.get().getPins()[link.second].first;
             linkedStates.push(linkedPinState);
         }
@@ -39,8 +41,8 @@ namespace nts {
         return linkedStates.top();
     }
 
-    nts::Tristate AComponent::compute(std::size_t pin) {
-        _pins[pin].first = this->_internalCompute(pin);
+    nts::Tristate AComponent::compute(std::size_t pin, bool forceCompute) {
+        _pins[pin].first = this->_internalCompute(pin, forceCompute);
         return _pins[pin].first;
     }
 
@@ -53,6 +55,12 @@ namespace nts {
                 component.get().computeBehaviour(tick);
             }
             this->compute(pin);
+        }
+    }
+
+    void AComponent::constantsInit() {
+        for (auto &[pin, data] : _pins) {
+            this->compute(pin, false);
         }
     }
 

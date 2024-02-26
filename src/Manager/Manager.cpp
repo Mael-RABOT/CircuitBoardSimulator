@@ -146,19 +146,15 @@ namespace nts {
             if (input.second->getType() == ComponentType::Input || input.second->getType() == ComponentType::Constants)
                 input.second->computeBehaviour(tick);
         }
-//        for (auto &output : _components) {
-//            if (output.second->getType() == ComponentType::Standard)
-//                output.second->computeBehaviour(tick);
-//        }
         for (auto &output : _components) {
             if (output.second->getType() == ComponentType::Output)
                 output.second->computeBehaviour(tick);
         }
     }
 
-    void Manager::initUpdateLinks() {
+    void Manager::initConstantsLinks() {
         for (auto &component : _components) {
-            std::cout << "Updating " << component.first << std::endl;
+            component.second->constantsInit();
         }
     }
 

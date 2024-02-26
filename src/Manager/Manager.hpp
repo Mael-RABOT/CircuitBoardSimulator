@@ -74,7 +74,7 @@ namespace nts {
 
             void simulate() { this->simulate(++_currentTick); };
             void simulate(std::size_t tick);
-            void initUpdateLinks();
+            void initConstantsLinks();
 
             IComponent * factory(
                 const std::string &type,
