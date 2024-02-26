@@ -9,6 +9,7 @@ int main(int ac, char **av) {
         manager.initGates(PRIMARY_GATES_PATH);
         manager.initGates(SECONDARY_GATES_PATH);
         manager.parser(ac, av);
+        manager.initUpdateLinks();
         manager.run();
     } catch (const nts::CustomError &e) {
         std::cerr << e.what() << std::endl;

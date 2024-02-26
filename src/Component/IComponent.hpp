@@ -19,7 +19,8 @@ namespace nts {
     enum ComponentType {
         Input = 0,
         Output = 1,
-        Standard = 2
+        Standard = 2,
+        Constants = 3,
     };
 
     class IComponent {

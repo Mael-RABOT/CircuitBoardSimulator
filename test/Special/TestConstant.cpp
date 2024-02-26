@@ -21,7 +21,7 @@ Test(Constant, should_create_true_const) {
     nts::IComponent *component = ConstantManager.getComponent("true1");
 
     cr_assert_eq(component->getLabel(), "true1");
-    cr_assert_eq(component->getType(), nts::ComponentType::Input);
+    cr_assert_eq(component->getType(), nts::ComponentType::Constants);
     cr_assert_eq(component->getValue(1), nts::Tristate::True);
 }
 
@@ -29,7 +29,7 @@ Test(Constant, should_create_false_const) {
     nts::IComponent *component = ConstantManager.getComponent("false1");
 
     cr_assert_eq(component->getLabel(), "false1");
-    cr_assert_eq(component->getType(), nts::ComponentType::Input);
+    cr_assert_eq(component->getType(), nts::ComponentType::Constants);
     cr_assert_eq(component->getValue(1), nts::Tristate::False);
 }
 
