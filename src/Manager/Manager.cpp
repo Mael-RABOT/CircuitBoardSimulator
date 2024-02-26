@@ -102,13 +102,13 @@ namespace nts {
         }
     }
 
-    void Manager::dump(bool inputs, bool components, bool outputs, bool truthTables) {
+    void Manager::dump(bool inputs, bool, bool outputs, bool truthTables) {
         std::cout << "tick: " << _currentTick << std::endl;
         if (inputs) {
-            this->_dumpPrint("Inputs: ", ComponentType::Input);
+            this->_dumpPrint("Constants: ", ComponentType::Constants);
         }
-        if (components) {
-            this->_dumpPrint("Standards: ", ComponentType::Standard);
+        if (inputs) {
+            this->_dumpPrint("Inputs: ", ComponentType::Input);
         }
         if (outputs) {
             this->_dumpPrint("Output: ", ComponentType::Output);
@@ -143,16 +143,18 @@ namespace nts {
     void Manager::simulate(std::size_t tick) {
         _currentTick = tick;
         for (auto &input : _components) {
-            if (input.second->getType() == ComponentType::Input)
+            if (input.second->getType() == ComponentType::Input || input.second->getType() == ComponentType::Constants)
                 input.second->computeBehaviour(tick);
         }
-//        for (auto &output : _components) {
-//            if (output.second->getType() == ComponentType::Standard)
-//                output.second->computeBehaviour(tick);
-//        }
         for (auto &output : _components) {
             if (output.second->getType() == ComponentType::Output)
                 output.second->computeBehaviour(tick);
+        }
+    }
+
+    void Manager::initConstantsLinks() {
+        for (auto &component : _components) {
+            component.second->constantsInit();
         }
     }
 
@@ -446,11 +448,18 @@ namespace nts {
         fs.close();
     }
 
-    void Manager::_displayPrint(const std::string &title, ComponentType type) {
+    void Manager::_displayPrint(const std::string &title, std::vector<ComponentType> types) {
         std::cout << title << std::endl;
+        bool asType;
         for (auto &input: _components) {
-            if (input.second->getType() != type)
-                continue;
+            asType = false;
+            for (auto &t : types) {
+                if (input.second->getType() == t) {
+                    asType = true;
+                    break;
+                }
+            }
+            if (!asType) continue;
             std::cout << "  " << input.first << ": "
                 << ((input.second->getPins()[1].first == nts::Tristate::Undefined)
                 ? "U" : (input.second->getPins()[1].first == nts::Tristate::True) ? "1" : "0")
@@ -460,8 +469,8 @@ namespace nts {
 
     void Manager::display() {
         std::cout << "tick: " << _currentTick << std::endl;
-        this->_displayPrint("input(s):", ComponentType::Input);
-        this->_displayPrint("output(s):", ComponentType::Output);
+        this->_displayPrint("input(s):", {ComponentType::Input, ComponentType::Constants});
+        this->_displayPrint("output(s):", {ComponentType::Output});
     }
 
     void Manager::_loop() {
@@ -582,7 +591,7 @@ namespace nts {
         }
         bool hasInput = false;
         for (auto &component: _components) {
-            if (component.second->getType() == ComponentType::Input) {
+            if (component.second->getType() == ComponentType::Input || component.second->getType() == ComponentType::Constants) {
                 hasInput = true;
                 break;
             }

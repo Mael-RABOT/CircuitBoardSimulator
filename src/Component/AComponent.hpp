@@ -17,14 +17,15 @@ namespace nts {
             std::size_t _lastTick;
             std::string _label;
             nts::ComponentType _type;
-            nts::Tristate _internalCompute(std::size_t pin);
+            nts::Tristate _internalCompute(std::size_t pin, bool forceCompute = true);
 
         public:
             AComponent(int pinNb, const std::string &label, ComponentType type = ComponentType::Standard);
             ~AComponent() {};
             void simulate(std::size_t tick) override;
-            nts::Tristate compute (std::size_t pin) override;
+            nts::Tristate compute (std::size_t pin, bool forceCompute = true) override;
             void update(std::size_t tick) override;
+            void constantsInit() override;
             void setLink (
                 std::size_t pin, nts::IComponent& other, std::size_t otherPin) override;
             void removeLink(std::size_t pin) override;
