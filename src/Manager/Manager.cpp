@@ -448,18 +448,11 @@ namespace nts {
         fs.close();
     }
 
-    void Manager::_displayPrint(const std::string &title, std::vector<ComponentType> types) {
+    void Manager::_displayPrint(const std::string &title, ComponentType types) {
         std::cout << title << std::endl;
-        bool asType;
         for (auto &input: _components) {
-            asType = false;
-            for (auto &t : types) {
-                if (input.second->getType() == t) {
-                    asType = true;
-                    break;
-                }
-            }
-            if (!asType) continue;
+            if (input.second->getType() != types)
+                continue;
             std::cout << "  " << input.first << ": "
                 << ((input.second->getPins()[1].first == nts::Tristate::Undefined)
                 ? "U" : (input.second->getPins()[1].first == nts::Tristate::True) ? "1" : "0")
@@ -469,8 +462,8 @@ namespace nts {
 
     void Manager::display() {
         std::cout << "tick: " << _currentTick << std::endl;
-        this->_displayPrint("input(s):", {ComponentType::Input, ComponentType::Constants});
-        this->_displayPrint("output(s):", {ComponentType::Output});
+        this->_displayPrint("input(s):", ComponentType::Input);
+        this->_displayPrint("output(s):", ComponentType::Output);
     }
 
     void Manager::_loop() {

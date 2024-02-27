@@ -45,7 +45,7 @@ namespace nts {
             void _checkRun() const;
             bool _addComponent(const std::string &label, IComponent *component);
 
-            void _displayPrint(const std::string &title, std::vector<ComponentType> type);
+            void _displayPrint(const std::string &title, ComponentType type);
             void _dumpPrint(const std::string &title, ComponentType type);
             static void _help();
             static void _commandHelp();
